@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Mail Filter - Priority Schedule & Email Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google OAuth Client Library -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body class="bg-slate-100 h-screen font-sans flex flex-col p-4 overflow-hidden">
+
+  <!-- Main Container -->
+  <div class="max-w-7xl w-full mx-auto bg-white rounded-xl shadow-lg flex-1 flex flex-col overflow-hidden border border-slate-200">
+    
+    <!-- Top Bar -->
+    <header class="bg-indigo-700 text-white px-6 py-3 flex items-center justify-between border-b border-indigo-800 shrink-0">
+      <div class="flex items-center gap-3">
+        <div>
+          <h1 class="text-lg font-bold tracking-wide">Smart Mail Filter</h1>
+          <p class="text-xs text-indigo-200" id="current-view-subtitle">Active View: Live Inbox</p>
+        </div>
+      </div>
+      
+      <!-- Date Filter Indicator -->
+      <div class="flex items-center gap-2 bg-indigo-800/80 px-3 py-1.5 rounded-lg border border-indigo-500 text-xs">
+        <i data-lucide="filter" class="w-3.5 h-3.5 text-indigo-300"></i>
+        <span>Date Filter: <strong id="active-date-label" class="text-amber-300 font-mono">All Dates</strong></span>
+        <button onclick="resetDateFilter()" class="ml-2 text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded transition">
+          Show All
+        </button>
+      </div>
+
+      <!-- User Info / Google Auth Bar -->
+      <div id="user-profile-bar" class="flex items-center space-x-2">
+        <button onclick="openClientIdModal()" class="bg-indigo-900 hover:bg-indigo-800 text-indigo-200 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-600 transition flex items-center gap-1">
+          <i data-lucide="key" class="w-3.5 h-3.5 text-amber-300"></i> Set Client ID
+        </button>
+        <button id="login-btn" onclick="loginWithGoogle()" class="bg-amber-400 hover:bg-amber-300 text-indigo-950 font-bold text-xs px-3 py-1.5 rounded-lg shadow transition flex items-center gap-1.5">
+          <i data-lucide="log-in" class="w-4 h-4"></i> Sign In with Google
+        </button>
+      </div>
+    </header>
+
+    <!-- Grid Layout -->
+    <div class="grid grid-cols-12 flex-1 overflow-hidden">
+
+      <!-- LEFT SIDEBAR: Calendar & High-Visibility Schedule -->
+      <aside class="col-span-4 border-r border-slate-200 bg-slate-50 p-3.5 flex flex-col justify-between overflow-y-auto space-y-3">
+        
+        <!-- CALENDAR WIDGET -->
+        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col space-y-3 shrink-0">
+          <div class="flex items-center justify-between border-b pb-2">
+            <div class="flex items-center gap-1">
+              <button onclick="changeMonth(-1)" class="p-1 hover:bg-slate-100 rounded text-slate-600 transition">
+                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+              </button>
+              <h2 id="calendar-month-title" class="font-bold text-slate-800 text-xs w-28 text-center">
+                October 2026
+              </h2>
+              <button id="next-month-btn" onclick="changeMonth(1)" class="p-1 hover:bg-slate-100 rounded text-slate-600 transition">
+                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <button onclick="openAddEventModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1 shadow-sm">
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Add
+            </button>
+          </div>
+
+          <!-- Calendar Grid -->
+          <div>
+            <div class="grid grid-cols-7 text-center text-[10px] font-bold text-slate-400 mb-1">
+              <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+            </div>
+            <div class="grid grid-cols-7 text-center text-xs gap-1 font-medium" id="calendar-days-grid"></div>
+          </div>
+        </div>
+
+        <!-- HIGH-VISIBILITY SCHEDULE CARD -->
+        <div class="bg-indigo-950 text-white p-3.5 rounded-xl shadow-md border border-indigo-800 flex-1 flex flex-col min-h-[200px]">
+          <div class="flex items-center justify-between border-b border-indigo-800/80 pb-2 mb-2.5">
+            <div class="flex items-center gap-2">
+              <span class="p-1.5 bg-amber-400 text-indigo-950 rounded-lg shrink-0">
+                <i data-lucide="calendar-days" class="w-4 h-4 font-bold"></i>
+              </span>
+              <div>
+                <h3 class="text-[10px] uppercase tracking-wider text-indigo-300 font-bold">Scheduled Meetings</h3>
+                <span class="text-xs font-extrabold text-amber-300 font-mono" id="schedule-date-heading">Today</span>
+              </div>
+            </div>
+            <span class="text-[10px] bg-indigo-900 border border-indigo-700 text-indigo-200 px-2 py-0.5 rounded font-mono" id="event-count-badge">0 Events</span>
+          </div>
+
+          <div id="integrated-schedule-list" class="space-y-2 flex-1 overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- Trash Nav -->
+        <div onclick="switchView('trash')" id="nav-trash" class="folder-nav-btn cursor-pointer bg-red-50 hover:bg-red-100 p-2.5 rounded-lg border border-red-200 transition flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-2">
+            <i data-lucide="trash-2" class="w-4 h-4 text-red-600"></i>
+            <div>
+              <div class="text-xs font-bold text-red-800">Spam & Trash</div>
+              <div class="text-[10px] text-red-600"><span id="trash-count">0</span> items</div>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-red-500"></i>
+        </div>
+
+      </aside>
+
+      <!-- MAIN CENTER SECTION: EMAIL FEED -->
+      <main class="col-span-5 p-4 flex flex-col overflow-hidden bg-white border-r border-slate-200">
+        
+        <div class="flex items-center justify-between mb-3 border-b pb-2 shrink-0">
+          <div>
+            <h2 id="main-view-title" class="text-base font-bold text-slate-800 flex items-center gap-2">
+              Unread Inbox
+            </h2>
+            <span class="text-[11px] text-slate-400" id="main-view-hint">Set your Client ID & sign in to fetch live messages</span>
+          </div>
+
+          <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg">
+            <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-slate-500"></i>
+            <select id="sort-select" onchange="changeSortOrder(this.value)" class="bg-transparent text-xs text-slate-800 font-semibold focus:outline-none cursor-pointer">
+              <option value="newest">Date (Newest First)</option>
+              <option value="oldest">Date (Oldest First)</option>
+              <option value="sender">Sender Name (A–Z)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Main Email Feed Container -->
+        <div id="main-feed-container" class="flex-1 overflow-y-auto space-y-2.5 pr-1.5">
+          <div class="p-12 text-center text-slate-400 text-xs italic bg-slate-50 border border-dashed rounded-lg flex flex-col items-center gap-3">
+            <p>Click "Set Client ID" in the top bar to save your Google OAuth Client ID, then click "Sign In with Google".</p>
+            <button onclick="openClientIdModal()" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-700 transition">
+              Set Client ID
+            </button>
+          </div>
+        </div>
+
+      </main>
+
+      <!-- RIGHT SIDEBAR: QUICK NAVIGATION -->
+      <aside class="col-span-3 bg-slate-50 p-4 space-y-3 overflow-y-auto shrink-0">
+        
+        <div onclick="switchView('unread')" id="nav-unread" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
+          <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="mail-unread" class="w-4 h-4 text-indigo-600"></i> Unread Inbox
+            </span>
+            <span id="unread-count-badge" class="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+          </div>
+          <p class="text-[10px] text-slate-500">Filter unread messages</p>
+        </div>
+
+        <div onclick="switchView('starred')" id="nav-starred" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
+          <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="star" class="w-4 h-4 text-amber-500"></i> Starred Folder
+            </span>
+            <span id="starred-count-badge" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+          </div>
+          <p class="text-[10px] text-slate-500">Starred emails</p>
+        </div>
+
+        <div onclick="switchView('full-inbox')" id="nav-full-inbox" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm text-center transition">
+          <i data-lucide="inbox" class="w-5 h-5 text-indigo-600 mx-auto mb-1"></i>
+          <h3 class="font-bold text-slate-800 text-xs">Full Inbox</h3>
+          <p class="text-[10px] text-slate-500 mb-2">Display all messages</p>
+        </div>
+
+      </aside>
+
+    </div>
+  </div>
+
+  <!-- EVENT DETAIL MODAL -->
+  <div id="event-detail-modal" class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50">
+    <div class="bg-white w-full max-w-md rounded-xl p-5 shadow-2xl relative border border-slate-200 flex flex-col space-y-4">
+      <div class="flex items-center justify-between border-b pb-3">
+        <div class="flex items-center gap-2">
+          <span class="p-1.5 bg-amber-100 text-amber-800 rounded-lg">
+            <i data-lucide="calendar" class="w-4 h-4"></i>
+          </span>
+          <div>
+            <h3 class="text-xs uppercase font-bold text-slate-400">Scheduled Event Details</h3>
+            <p id="event-detail-title" class="text-base font-bold text-slate-900 leading-snug">Event Title</p>
+          </div>
+        </div>
+        <button onclick="closeEventDetailModal()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div class="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-lg border border-slate-100">
+          <div class="flex items-center gap-2">
+            <i data-lucide="calendar-days" class="w-4 h-4 text-indigo-600"></i>
+            <div>
+              <span class="text-[10px] text-slate-400 uppercase font-bold block">Date</span>
+              <span id="event-detail-date" class="font-bold text-slate-700 font-mono">2026-10-12</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <i data-lucide="clock" class="w-4 h-4 text-amber-500"></i>
+            <div>
+              <span class="text-[10px] text-slate-400 uppercase font-bold block">Time</span>
+              <span id="event-detail-time" class="font-bold text-slate-700 font-mono">09:00 AM</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <span class="text-[10px] text-slate-400 uppercase font-bold block mb-1">Agenda & Notes</span>
+          <div id="event-detail-notes" class="bg-slate-50 p-3 rounded-lg border border-slate-100 text-slate-700 leading-relaxed min-h-[60px]">
+            No additional notes provided.
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between border-t pt-3">
+        <button onclick="deleteCurrentEvent()" class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete Event
+        </button>
+        <button onclick="closeEventDetailModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-1.5 rounded-lg text-xs font-bold transition">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD EVENT MODAL -->
+  <div id="add-event-modal" class="hidden fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white w-full max-w-md rounded-xl p-5 shadow-2xl relative border border-slate-200 flex flex-col">
+      <div class="flex items-center justify-between border-b pb-2 mb-3">
+        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+          <i data-lucide="calendar-plus" class="w-4 h-4 text-indigo-600"></i> Schedule New Event
+        </h3>
+        <button onclick="closeAddEventModal()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form onsubmit="handleCreateEvent(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Event Title</label>
+          <input id="event-title-input" type="text" required placeholder="e.g. Team Sync" class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Date</label>
+            <input id="event-date-input" type="date" required class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Time</label>
+            <input id="event-time-input" type="time" required value="10:00" class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Notes / Description (Optional)</label>
+          <textarea id="event-notes-input" rows="2" placeholder="Agenda points..." class="w-full border border-slate-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 border-t pt-3 mt-2">
+          <button type="button" onclick="closeAddEventModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded font-semibold transition">
+            Cancel
+          </button>
+          <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded font-semibold transition flex items-center gap-1">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i> Save Event
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CLIENT ID INPUT MODAL -->
+  <div id="client-id-modal" class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50">
+    <div class="bg-white w-full max-w-md rounded-xl p-5 shadow-2xl relative border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+          <i data-lucide="key" class="w-4 h-4 text-amber-500"></i> Enter Google OAuth Client ID
+        </h3>
+        <button onclick="closeClientIdModal()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Google Client ID</label>
+        <input id="modal-client-id-input" type="text" placeholder="123456789-abc...apps.googleusercontent.com" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono">
+        <p class="text-[10px] text-slate-400 mt-1">Found in Google Cloud Console &rarr; APIs & Services &rarr; Credentials.</p>
+      </div>
+
+      <div class="flex justify-end gap-2 border-t pt-3">
+        <button onclick="closeClientIdModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded text-xs font-semibold transition">
+          Cancel
+        </button>
+        <button onclick="saveClientIdFromModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded text-xs font-semibold transition">
+          Save Client ID
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let googleClientId = localStorage.getItem('user_google_client_id') || '';
+    let accessToken = null;
+    let currentUserProfile = null;
+    let liveEmails = [];
+
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    let currentYear = new Date().getFullYear();
+    let currentMonthIdx = new Date().getMonth();
+    let selectedDate = new Date().toISOString().split('T')[0];
+    let isFilterByDateActive = false;
+    let currentView = 'unread';
+    let selectedEvent = null;
+    let activeSortKey = 'newest';
+    const calendarEvents = {};
+
+    // --- CLIENT ID MODAL HANDLERS ---
+    function openClientIdModal() {
+      document.getElementById('modal-client-id-input').value = googleClientId;
+      document.getElementById('client-id-modal').classList.remove('hidden');
+    }
+
+    function closeClientIdModal() {
+      document.getElementById('client-id-modal').classList.add('hidden');
+    }
+
+    function saveClientIdFromModal() {
+      const rawId = document.getElementById('modal-client-id-input').value.trim();
+      const match = rawId.match(/\d+-[a-z0-9]+\.apps\.googleusercontent\.com/i);
+      googleClientId = match ? match[0] : rawId;
+
+      if (!googleClientId) {
+        alert("Please enter a valid Google OAuth Client ID.");
+        return;
+      }
+
+      localStorage.setItem('user_google_client_id', googleClientId);
+      closeClientIdModal();
+      alert("Client ID saved! Click 'Sign In with Google' to load your Gmail inbox.");
+    }
+
+    // --- GOOGLE OAUTH & GMAIL API ---
+    function loginWithGoogle() {
+      if (!googleClientId) {
+        openClientIdModal();
+        return;
+      }
+
+      const tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: googleClientId,
+        scope: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+        callback: async (response) => {
+          if (response.error) {
+            alert(`Authentication failed: ${response.error}`);
+            return;
+          }
+          accessToken = response.access_token;
+          await fetchUserProfile();
+          await fetchGmailInbox();
+        },
+        error_callback: (err) => {
+          alert(`Google popup closed or blocked (${err.type}).`);
+        }
+      });
+
+      tokenClient.requestAccessToken();
+    }
+
+    async function fetchUserProfile() {
+      try {
+        const res = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        currentUserProfile = await res.json();
+        
+        const userBar = document.getElementById('user-profile-bar');
+        userBar.innerHTML = `
+          <div class="flex items-center space-x-2 bg-indigo-900/50 px-3 py-1 rounded-lg border border-indigo-600 text-xs">
+            <img src="${currentUserProfile.picture}" class="w-6 h-6 rounded-full border border-white" alt="Avatar"/>
+            <span class="font-bold text-white">${currentUserProfile.name}</span>
+          </div>
+        `;
+      } catch (err) {
+        console.error('User Profile Fetch Error:', err);
+      }
+    }
+
+    async function fetchGmailInbox() {
+      const container = document.getElementById('main-feed-container');
+      container.innerHTML = `<div class="p-12 text-center text-slate-500 text-xs">Connecting to Gmail API and loading messages...</div>`;
+
+      try {
+        const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=25', {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        const data = await res.json();
+
+        if (data.error) {
+          throw new Error(`${data.error.code}: ${data.error.message}`);
+        }
+
+        if (!data.messages || data.messages.length === 0) {
+          container.innerHTML = `<div class="p-12 text-center text-slate-400 text-xs">No emails found in this Gmail inbox.</div>`;
+          return;
+        }
+
+        const emailPromises = data.messages.map(async (msg) => {
+          const detailRes = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          });
+          return await detailRes.json();
+        });
+
+        const fullMessages = await Promise.all(emailPromises);
+        
+        liveEmails = fullMessages.map((msg) => {
+          const headers = msg.payload.headers || [];
+          const subjectHeader = headers.find(h => h.name.toLowerCase() === 'subject');
+          const fromHeader = headers.find(h => h.name.toLowerCase() === 'from');
+          const dateHeader = headers.find(h => h.name.toLowerCase() === 'date');
+
+          const msgDate = dateHeader ? new Date(dateHeader.value) : new Date();
+          const isUnread = msg.labelIds ? msg.labelIds.includes('UNREAD') : false;
+          const isStarred = msg.labelIds ? msg.labelIds.includes('STARRED') : false;
+
+          return {
+            id: msg.id,
+            sender: fromHeader ? fromHeader.value : 'Unknown Sender',
+            topic: subjectHeader ? subjectHeader.value : '(No Subject)',
+            snippet: msg.snippet || '',
+            starred: isStarred,
+            status: isUnread ? 'unread' : 'read',
+            dateObj: msgDate,
+            dateStr: msgDate.toISOString().split('T')[0],
+            displayDate: msgDate.toLocaleDateString()
+          };
+        });
+
+        renderFeed();
+      } catch (err) {
+        console.error('Gmail API Error:', err);
+        container.innerHTML = `<div class="p-12 text-center text-red-500 text-xs">Failed to load Gmail messages: ${err.message}</div>`;
+      }
+    }
+
+    function renderFeed() {
+      const container = document.getElementById('main-feed-container');
+      container.innerHTML = '';
+
+      if (liveEmails.length === 0) {
+        container.innerHTML = `<div class="p-12 text-center text-slate-400 text-xs">No emails available. Sign in with Google to view inbox messages.</div>`;
+        return;
+      }
+
+      let filteredList = [...liveEmails];
+
+      if (currentView === 'unread') {
+        filteredList = filteredList.filter(e => e.status === 'unread');
+      } else if (currentView === 'starred') {
+        filteredList = filteredList.filter(e => e.starred);
+      }
+
+      if (isFilterByDateActive) {
+        filteredList = filteredList.filter(e => e.dateStr === selectedDate);
+      }
+
+      document.getElementById('unread-count-badge').innerText = liveEmails.filter(e => e.status === 'unread').length;
+      document.getElementById('starred-count-badge').innerText = liveEmails.filter(e => e.starred).length;
+
+      if (filteredList.length === 0) {
+        container.innerHTML = `<div class="p-12 text-center text-slate-400 text-xs">No messages matching this view.</div>`;
+        return;
+      }
+
+      filteredList.forEach((email) => {
+        const card = document.createElement('div');
+        card.className = "p-4 bg-white border border-slate-200 rounded-lg hover:border-indigo-400 cursor-pointer transition flex flex-col space-y-1";
+        card.innerHTML = `
+          <div class="flex items-center justify-between text-xs font-bold text-slate-800">
+            <span class="truncate max-w-[220px]">${email.sender}</span>
+            <span class="text-[10px] text-slate-400 font-mono">${email.displayDate}</span>
+          </div>
+          <div class="text-xs text-indigo-700 font-semibold truncate">${email.topic}</div>
+          <div class="text-[11px] text-slate-500 line-clamp-1">${email.snippet}</div>
+        `;
+        container.appendChild(card);
+      });
+
+      lucide.createIcons();
+    }
+
+    function switchView(viewName) {
+      currentView = viewName;
+      renderFeed();
+    }
+
+    function resetDateFilter() {
+      isFilterByDateActive = false;
+      document.getElementById('active-date-label').innerText = 'All Dates';
+      renderFeed();
+    }
+
+    function changeMonth(delta) {
+      currentMonthIdx += delta;
+      if (currentMonthIdx > 11) {
+        currentMonthIdx = 0;
+        currentYear++;
+      } else if (currentMonthIdx < 0) {
+        currentMonthIdx = 11;
+        currentYear--;
+      }
+      document.getElementById('calendar-month-title').innerText = `${monthNames[currentMonthIdx]} ${currentYear}`;
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const grid = document.getElementById('calendar-days-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      const firstDayOffset = new Date(currentYear, currentMonthIdx, 1).getDay();
+      const totalDays = new Date(currentYear, currentMonthIdx + 1, 0).getDate();
+
+      for (let o = 0; o < firstDayOffset; o++) grid.appendChild(document.createElement('div'));
+
+      for (let day = 1; day <= totalDays; day++) {
+        const monthStr = (currentMonthIdx + 1) < 10 ? '0' + (currentMonthIdx + 1) : (currentMonthIdx + 1);
+        const dayStr = day < 10 ? '0' + day : day;
+        const dateStr = `${currentYear}-${monthStr}-${dayStr}`;
+
+        const btn = document.createElement('button');
+        btn.className = `p-1 rounded-lg transition font-semibold text-xs h-7 hover:bg-slate-100 ${selectedDate === dateStr && isFilterByDateActive ? 'bg-indigo-600 text-white font-bold' : 'text-slate-600'}`;
+        btn.innerText = day;
+        btn.onclick = () => {
+          selectedDate = dateStr;
+          isFilterByDateActive = true;
+          document.getElementById('active-date-label').innerText = selectedDate;
+          renderCalendar();
+          renderFeed();
+        };
+        grid.appendChild(btn);
+      }
+    }
+
+    function changeSortOrder(val) {
+      activeSortKey = val;
+      renderFeed();
+    }
+
+    function openAddEventModal() {
+      document.getElementById('add-event-modal').classList.remove('hidden');
+    }
+
+    function closeAddEventModal() {
+      document.getElementById('add-event-modal').classList.add('hidden');
+    }
+
+    function handleCreateEvent(e) {
+      e.preventDefault();
+      closeAddEventModal();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById('calendar-month-title').innerText = `${monthNames[currentMonthIdx]} ${currentYear}`;
+      renderCalendar();
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
