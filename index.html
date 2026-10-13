@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sort Away - Mail & Schedule Hub</title>
+  <title>Smart Mail Filter - Priority Schedule & Email Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google OAuth Client Library -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="bg-slate-100 h-screen font-sans flex flex-col p-4 overflow-hidden">
@@ -17,8 +18,8 @@
     <header class="bg-indigo-700 text-white px-6 py-3 flex items-center justify-between border-b border-indigo-800 shrink-0">
       <div class="flex items-center gap-3">
         <div>
-          <h1 class="text-lg font-bold tracking-wide">Sort Away</h1>
-          <p class="text-xs text-indigo-200" id="current-view-subtitle">Active View: Priority Inbox</p>
+          <h1 class="text-lg font-bold tracking-wide">Smart Mail Filter</h1>
+          <p class="text-xs text-indigo-200" id="current-view-subtitle">Active View: Unread Inbox</p>
         </div>
       </div>
       
@@ -31,7 +32,7 @@
         </button>
       </div>
 
-      <!-- Auth Bar -->
+      <!-- User Info / Google Auth Bar -->
       <div id="user-profile-bar" class="flex items-center space-x-2">
         <button onclick="openClientIdModal()" class="bg-indigo-900 hover:bg-indigo-800 text-indigo-200 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-600 transition flex items-center gap-1">
           <i data-lucide="key" class="w-3.5 h-3.5 text-amber-300"></i> Set Client ID
@@ -78,7 +79,7 @@
         </div>
 
         <!-- SCHEDULE CARD -->
-        <div class="bg-indigo-950 text-white p-3.5 rounded-xl shadow-md border border-indigo-800 flex-1 flex flex-col min-h-[200px]">
+        <div class="bg-indigo-950 text-white p-3.5 rounded-xl shadow-md border border-indigo-800 flex-1 flex flex-col min-h-[180px]">
           <div class="flex items-center justify-between border-b border-indigo-800/80 pb-2 mb-2.5">
             <div class="flex items-center gap-2">
               <span class="p-1.5 bg-amber-400 text-indigo-950 rounded-lg shrink-0">
@@ -95,13 +96,13 @@
           <div id="integrated-schedule-list" class="space-y-2 flex-1 overflow-y-auto pr-1"></div>
         </div>
 
-        <!-- Trash Nav -->
-        <div onclick="switchView('trash')" id="nav-trash" class="folder-nav-btn cursor-pointer bg-red-50 hover:bg-red-100 p-2.5 rounded-lg border border-red-200 transition flex items-center justify-between shrink-0">
+        <!-- SPAM / TRASH NAVIGATION -->
+        <div onclick="switchView('spam')" id="nav-spam" class="folder-nav-btn cursor-pointer bg-red-50 hover:bg-red-100 p-2.5 rounded-lg border border-red-200 transition flex items-center justify-between shrink-0">
           <div class="flex items-center gap-2">
-            <i data-lucide="trash-2" class="w-4 h-4 text-red-600"></i>
+            <i data-lucide="shield-alert" class="w-4 h-4 text-red-600"></i>
             <div>
-              <div class="text-xs font-bold text-red-800">Spam & Trash</div>
-              <div class="text-[10px] text-red-600"><span id="trash-count">0</span> items</div>
+              <div class="text-xs font-bold text-red-800">Spam & Junk Mail</div>
+              <div class="text-[10px] text-red-600"><span id="spam-count-badge">0</span> detected</div>
             </div>
           </div>
           <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-red-500"></i>
@@ -117,7 +118,7 @@
             <h2 id="main-view-title" class="text-base font-bold text-slate-800 flex items-center gap-2">
               Unread Inbox
             </h2>
-            <span class="text-[11px] text-slate-400" id="main-view-hint">Click "Set Client ID" to authenticate and load live messages</span>
+            <span class="text-[11px] text-slate-400" id="main-view-hint">Set Client ID & sign in to organize messages</span>
           </div>
 
           <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg">
@@ -130,7 +131,7 @@
           </div>
         </div>
 
-        <!-- Email Feed Container -->
+        <!-- Main Email Feed Container -->
         <div id="main-feed-container" class="flex-1 overflow-y-auto space-y-2.5 pr-1.5">
           <div class="p-12 text-center text-slate-400 text-xs italic bg-slate-50 border border-dashed rounded-lg flex flex-col items-center gap-3">
             <p>Click "Set Client ID" in the top bar to save your Google OAuth Client ID, then click "Sign In with Google".</p>
@@ -142,19 +143,9 @@
 
       </main>
 
-      <!-- RIGHT SIDEBAR: SMART FOLDERS -->
+      <!-- RIGHT SIDEBAR: SMART CATEGORIES -->
       <aside class="col-span-3 bg-slate-50 p-4 space-y-3 overflow-y-auto shrink-0">
         
-        <div onclick="switchView('actionable')" id="nav-actionable" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
-          <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
-            <span class="flex items-center gap-1.5">
-              <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i> Actionable / Meetings
-            </span>
-            <span id="actionable-count-badge" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
-          </div>
-          <p class="text-[10px] text-slate-500">Invites, tasks, & urgent topics</p>
-        </div>
-
         <div onclick="switchView('unread')" id="nav-unread" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
           <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
             <span class="flex items-center gap-1.5">
@@ -162,17 +153,37 @@
             </span>
             <span id="unread-count-badge" class="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
           </div>
-          <p class="text-[10px] text-slate-500">All unread incoming mail</p>
+          <p class="text-[10px] text-slate-500">Primary incoming emails</p>
+        </div>
+
+        <div onclick="switchView('actionable')" id="nav-actionable" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
+          <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i> Actionable / Urgent
+            </span>
+            <span id="actionable-count-badge" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+          </div>
+          <p class="text-[10px] text-slate-500">Meetings, tasks, & deadlines</p>
+        </div>
+
+        <div onclick="switchView('promotions')" id="nav-promotions" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
+          <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="tag" class="w-4 h-4 text-slate-500"></i> Promos & Newsletters
+            </span>
+            <span id="promotions-count-badge" class="bg-slate-200 text-slate-700 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+          </div>
+          <p class="text-[10px] text-slate-500">Unimportant marketing & automated mail</p>
         </div>
 
         <div onclick="switchView('starred')" id="nav-starred" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
           <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
             <span class="flex items-center gap-1.5">
-              <i data-lucide="star" class="w-4 h-4 text-amber-500"></i> Starred Queue
+              <i data-lucide="star" class="w-4 h-4 text-amber-500"></i> Starred Folder
             </span>
             <span id="starred-count-badge" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
           </div>
-          <p class="text-[10px] text-slate-500">Flagged priority messages</p>
+          <p class="text-[10px] text-slate-500">Flagged messages</p>
         </div>
 
         <div onclick="switchView('full-inbox')" id="nav-full-inbox" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm text-center transition">
@@ -183,36 +194,6 @@
 
       </aside>
 
-    </div>
-  </div>
-
-  <!-- READ EMAIL MODAL -->
-  <div id="email-detail-modal" class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50">
-    <div class="bg-white w-full max-w-xl rounded-xl p-6 shadow-2xl relative border border-slate-200 flex flex-col space-y-4">
-      <div class="flex items-start justify-between border-b pb-3">
-        <div class="space-y-1 pr-4">
-          <div id="email-detail-tags" class="flex items-center gap-2"></div>
-          <h3 id="email-detail-subject" class="text-base font-bold text-slate-900 leading-snug">Subject Title</h3>
-          <div class="text-xs text-slate-500 flex items-center gap-2">
-            <span class="font-semibold text-slate-700" id="email-detail-sender">Sender Name</span>
-            <span>&bull;</span>
-            <span id="email-detail-date" class="font-mono text-[11px]">Date</span>
-          </div>
-        </div>
-        <button onclick="closeEmailModal()" class="text-slate-400 hover:text-slate-600 p-1">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <div class="bg-slate-50 p-4 rounded-lg border border-slate-100 text-xs text-slate-700 leading-relaxed max-h-72 overflow-y-auto" id="email-detail-body">
-        Message body content...
-      </div>
-
-      <div class="flex justify-end border-t pt-3">
-        <button onclick="closeEmailModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded text-xs font-semibold transition">
-          Close
-        </button>
-      </div>
     </div>
   </div>
 
@@ -262,7 +243,7 @@
     </div>
   </div>
 
-  <!-- CLIENT ID MODAL -->
+  <!-- CLIENT ID INPUT MODAL -->
   <div id="client-id-modal" class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50">
     <div class="bg-white w-full max-w-md rounded-xl p-5 shadow-2xl relative border border-slate-200 space-y-4">
       <div class="flex items-center justify-between border-b pb-2">
@@ -381,17 +362,40 @@
 
     async function fetchGmailInbox() {
       const container = document.getElementById('main-feed-container');
-      container.innerHTML = `<div class="p-12 text-center text-slate-500 text-xs">Connecting to Gmail API...</div>`;
+      container.innerHTML = `<div class="p-12 text-center text-slate-500 text-xs">Connecting to Gmail API and running smart filter...</div>`;
 
       try {
-        const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=35', {
+        // Query includes SPAM and TRASH to properly categorize spam emails
+        const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=40&includeSpamTrash=true', {
           headers: { Authorization: `Bearer ${accessToken}` }
         });
         const data = await res.json();
 
         if (data.error) {
-          throw new Error(`${data.error.code}:${data.error.message}`);
+          throw new Error(`${data.error.code}: ${data.error.message}`);
         }
 
         if (!data.messages || data.messages.length === 0) {
-          container.innerHTML = `<div class="p-12 text-center text-slate-4
+          container.innerHTML = `<div class="p-12 text-center text-slate-400 text-xs">No emails found in this Gmail inbox.</div>`;
+          return;
+        }
+
+        const emailPromises = data.messages.map(async (msg) => {
+          const detailRes = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          });
+          return await detailRes.json();
+        });
+
+        const fullMessages = await Promise.all(emailPromises);
+        
+        liveEmails = fullMessages.map((msg) => {
+          const headers = msg.payload.headers || [];
+          const subjectHeader = headers.find(h => h.name.toLowerCase() === 'subject');
+          const fromHeader = headers.find(h => h.name.toLowerCase() === 'from');
+          const dateHeader = headers.find(h => h.name.toLowerCase() === 'date');
+
+          const topic = subjectHeader ? subjectHeader.value : '(No Subject)';
+          const snippet = msg.snippet || '';
+          const msgDate = dateHeader ? new Date(dateHeader.value) : new Date();
+          const labels = msg.labelIds || [];
