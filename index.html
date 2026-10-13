@@ -19,7 +19,7 @@
       <div class="flex items-center gap-3">
         <div>
           <h1 class="text-lg font-bold tracking-wide">Smart Mail Filter</h1>
-          <p class="text-xs text-indigo-200" id="current-view-subtitle">Active View: Live Inbox</p>
+          <p class="text-xs text-indigo-200" id="current-view-subtitle">Active View: Priority Inbox</p>
         </div>
       </div>
       
@@ -96,13 +96,13 @@
           <div id="integrated-schedule-list" class="space-y-2 flex-1 overflow-y-auto pr-1"></div>
         </div>
 
-        <!-- Trash Nav -->
+        <!-- Trash / Spam Nav -->
         <div onclick="switchView('trash')" id="nav-trash" class="folder-nav-btn cursor-pointer bg-red-50 hover:bg-red-100 p-2.5 rounded-lg border border-red-200 transition flex items-center justify-between shrink-0">
           <div class="flex items-center gap-2">
-            <i data-lucide="trash-2" class="w-4 h-4 text-red-600"></i>
+            <i data-lucide="shield-alert" class="w-4 h-4 text-red-600"></i>
             <div>
-              <div class="text-xs font-bold text-red-800">Spam & Trash</div>
-              <div class="text-[10px] text-red-600"><span id="trash-count">0</span> items</div>
+              <div class="text-xs font-bold text-red-800">Spam & Junk Filter</div>
+              <div class="text-[10px] text-red-600"><span id="trash-count">0</span> items isolated</div>
             </div>
           </div>
           <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-red-500"></i>
@@ -116,9 +116,9 @@
         <div class="flex items-center justify-between mb-3 border-b pb-2 shrink-0">
           <div>
             <h2 id="main-view-title" class="text-base font-bold text-slate-800 flex items-center gap-2">
-              Unread Inbox
+              Priority Unread Inbox
             </h2>
-            <span class="text-[11px] text-slate-400" id="main-view-hint">Set your Client ID & sign in to fetch live messages</span>
+            <span class="text-[11px] text-slate-400" id="main-view-hint">Spam and low-priority promotions are automatically separated</span>
           </div>
 
           <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg">
@@ -143,33 +143,53 @@
 
       </main>
 
-      <!-- RIGHT SIDEBAR: QUICK NAVIGATION -->
+      <!-- RIGHT SIDEBAR: SMART FOLDER NAVIGATION -->
       <aside class="col-span-3 bg-slate-50 p-4 space-y-3 overflow-y-auto shrink-0">
         
+        <div onclick="switchView('actionable')" id="nav-actionable" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
+          <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i> Actionable / Meetings
+            </span>
+            <span id="actionable-count-badge" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+          </div>
+          <p class="text-[10px] text-slate-500">Invites, tasks, & urgent topics</p>
+        </div>
+
         <div onclick="switchView('unread')" id="nav-unread" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
           <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
             <span class="flex items-center gap-1.5">
-              <i data-lucide="mail-unread" class="w-4 h-4 text-indigo-600"></i> Unread Inbox
+              <i data-lucide="mail-unread" class="w-4 h-4 text-indigo-600"></i> Priority Unread
             </span>
             <span id="unread-count-badge" class="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
           </div>
-          <p class="text-[10px] text-slate-500">Filter unread messages</p>
+          <p class="text-[10px] text-slate-500">Important primary messages</p>
+        </div>
+
+        <div onclick="switchView('promo')" id="nav-promo" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
+          <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="tag" class="w-4 h-4 text-blue-500"></i> Promotions / Newsletters
+            </span>
+            <span id="promo-count-badge" class="bg-blue-100 text-blue-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+          </div>
+          <p class="text-[10px] text-slate-500">Non-essential newsletters & ads</p>
         </div>
 
         <div onclick="switchView('starred')" id="nav-starred" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
           <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
             <span class="flex items-center gap-1.5">
-              <i data-lucide="star" class="w-4 h-4 text-amber-500"></i> Starred Folder
+              <i data-lucide="star" class="w-4 h-4 text-amber-500"></i> Starred Queue
             </span>
             <span id="starred-count-badge" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
           </div>
-          <p class="text-[10px] text-slate-500">Starred emails</p>
+          <p class="text-[10px] text-slate-500">Flagged priority messages</p>
         </div>
 
         <div onclick="switchView('full-inbox')" id="nav-full-inbox" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm text-center transition">
           <i data-lucide="inbox" class="w-5 h-5 text-indigo-600 mx-auto mb-1"></i>
-          <h3 class="font-bold text-slate-800 text-xs">Full Inbox</h3>
-          <p class="text-[10px] text-slate-500 mb-2">Display all messages</p>
+          <h3 class="font-bold text-slate-800 text-xs">All Messages</h3>
+          <p class="text-[10px] text-slate-500 mb-2">Display complete archive</p>
         </div>
 
       </aside>
@@ -342,10 +362,11 @@
 
     async function fetchGmailInbox() {
       const container = document.getElementById('main-feed-container');
-      container.innerHTML = `<div class="p-12 text-center text-slate-500 text-xs">Connecting to Gmail API and loading messages...</div>`;
+      container.innerHTML = `<div class="p-12 text-center text-slate-500 text-xs">Scanning Gmail for inbox messages, spam, and promotions...</div>`;
 
       try {
-        const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=25', {
+        // Includes inbox, spam, and trash in query
+        const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=40&q=in:inbox OR in:spam OR in:trash', {
           headers: { Authorization: `Bearer ${accessToken}` }
         });
         const data = await res.json();
@@ -374,17 +395,38 @@
           const fromHeader = headers.find(h => h.name.toLowerCase() === 'from');
           const dateHeader = headers.find(h => h.name.toLowerCase() === 'date');
 
+          const topic = subjectHeader ? subjectHeader.value : '(No Subject)';
+          const snippet = msg.snippet || '';
+          const sender = fromHeader ? fromHeader.value : 'Unknown Sender';
           const msgDate = dateHeader ? new Date(dateHeader.value) : new Date();
+
           const isUnread = msg.labelIds ? msg.labelIds.includes('UNREAD') : false;
           const isStarred = msg.labelIds ? msg.labelIds.includes('STARRED') : false;
+          
+          // Spam & Junk Detection
+          const isExplicitSpam = msg.labelIds ? (msg.labelIds.includes('SPAM') || msg.labelIds.includes('TRASH')) : false;
+          const spamKeywords = ['winner', 'verify your account', 'claim now', 'casino', 'lottery', 'crypto bonus', 'free gift'];
+          const isSpamContent = spamKeywords.some(kw => topic.toLowerCase().includes(kw) || snippet.toLowerCase().includes(kw));
+          const isJunk = isExplicitSpam || isSpamContent;
+
+          // Promotional / Low Priority Detection
+          const promoKeywords = ['unsubscribe', 'discount', '% off', 'sale', 'newsletter', 'no-reply', 'promotions', 'deals', 'marketing'];
+          const isPromo = !isJunk && promoKeywords.some(kw => topic.toLowerCase().includes(kw) || snippet.toLowerCase().includes(kw) || sender.toLowerCase().includes('no-reply'));
+
+          // Actionable / Meeting Detection
+          const actionKeywords = ['meeting', 'schedule', 'invite', 'zoom', 'call', 'urgent', 'action required', 'due date', 'calendar'];
+          const isActionable = !isJunk && actionKeywords.some(kw => topic.toLowerCase().includes(kw) || snippet.toLowerCase().includes(kw));
 
           return {
             id: msg.id,
-            sender: fromHeader ? fromHeader.value : 'Unknown Sender',
-            topic: subjectHeader ? subjectHeader.value : '(No Subject)',
-            snippet: msg.snippet || '',
+            sender: sender,
+            topic: topic,
+            snippet: snippet,
             starred: isStarred,
             status: isUnread ? 'unread' : 'read',
+            isJunk: isJunk,
+            isPromo: isPromo,
+            isActionable: isActionable,
             dateObj: msgDate,
             dateStr: msgDate.toISOString().split('T')[0],
             displayDate: msgDate.toLocaleDateString()
@@ -409,16 +451,27 @@
 
       let filteredList = [...liveEmails];
 
+      // Folder Filtering Logic
       if (currentView === 'unread') {
-        filteredList = filteredList.filter(e => e.status === 'unread');
+        filteredList = filteredList.filter(e => e.status === 'unread' && !e.isJunk && !e.isPromo);
       } else if (currentView === 'starred') {
-        filteredList = filteredList.filter(e => e.starred);
+        filteredList = filteredList.filter(e => e.starred && !e.isJunk);
+      } else if (currentView === 'actionable') {
+        filteredList = filteredList.filter(e => e.isActionable && !e.isJunk);
+      } else if (currentView === 'promo') {
+        filteredList = filteredList.filter(e => e.isPromo && !e.isJunk);
+      } else if (currentView === 'trash') {
+        filteredList = filteredList.filter(e => e.isJunk);
+      } else {
+        filteredList = filteredList.filter(e => !e.isJunk);
       }
 
+      // Filter by Calendar Date
       if (isFilterByDateActive) {
         filteredList = filteredList.filter(e => e.dateStr === selectedDate);
       }
 
+      // Apply Sorting
       if (activeSortKey === 'newest') {
         filteredList.sort((a, b) => b.dateObj - a.dateObj);
       } else if (activeSortKey === 'oldest') {
@@ -427,11 +480,15 @@
         filteredList.sort((a, b) => a.sender.localeCompare(b.sender));
       }
 
-      document.getElementById('unread-count-badge').innerText = liveEmails.filter(e => e.status === 'unread').length;
-      document.getElementById('starred-count-badge').innerText = liveEmails.filter(e => e.starred).length;
+      // Update Sidebar Badges
+      document.getElementById('unread-count-badge').innerText = liveEmails.filter(e => e.status === 'unread' && !e.isJunk && !e.isPromo).length;
+      document.getElementById('starred-count-badge').innerText = liveEmails.filter(e => e.starred && !e.isJunk).length;
+      document.getElementById('actionable-count-badge').innerText = liveEmails.filter(e => e.isActionable && !e.isJunk).length;
+      document.getElementById('promo-count-badge').innerText = liveEmails.filter(e => e.isPromo && !e.isJunk).length;
+      document.getElementById('trash-count').innerText = liveEmails.filter(e => e.isJunk).length;
 
       if (filteredList.length === 0) {
-        container.innerHTML = `<div class="p-12 text-center text-slate-400 text-xs">No messages matching this view.</div>`;
+        container.innerHTML = `<div class="p-12 text-center text-slate-400 text-xs">No messages matching this view or filter.</div>`;
         return;
       }
 
@@ -443,7 +500,12 @@
             <span class="truncate max-w-[220px]">${email.sender}</span>
             <span class="text-[10px] text-slate-400 font-mono">${email.displayDate}</span>
           </div>
-          <div class="text-xs text-indigo-700 font-semibold truncate">${email.topic}</div>
+          <div class="text-xs text-indigo-700 font-semibold truncate flex items-center gap-1.5">
+            ${email.isJunk ? '<span class="bg-red-100 text-red-800 text-[9px] px-1.5 py-0.5 rounded font-bold">Spam</span>' : ''}
+            ${email.isPromo ? '<span class="bg-blue-100 text-blue-800 text-[9px] px-1.5 py-0.5 rounded font-bold">Promo</span>' : ''}
+            ${email.isActionable ? '<span class="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded font-bold">Action</span>' : ''}
+            ${email.topic}
+          </div>
           <div class="text-[11px] text-slate-500 line-clamp-1">${email.snippet}</div>
         `;
         container.appendChild(card);
@@ -455,7 +517,11 @@
     function switchView(viewName) {
       currentView = viewName;
       document.getElementById('main-view-title').innerText = 
-        viewName === 'unread' ? 'Unread Inbox' : viewName === 'starred' ? 'Starred Folder' : 'Full Inbox';
+        viewName === 'unread' ? 'Priority Unread Inbox' : 
+        viewName === 'starred' ? 'Starred Queue' : 
+        viewName === 'actionable' ? 'Actionable / Meetings' : 
+        viewName === 'promo' ? 'Promotions & Newsletters' :
+        viewName === 'trash' ? 'Spam & Junk Filter' : 'All Messages';
       renderFeed();
     }
 
