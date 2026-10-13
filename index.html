@@ -16,7 +16,7 @@
     <header class="bg-indigo-700 text-white px-6 py-3 flex items-center justify-between border-b border-indigo-800 shrink-0">
       <div>
         <h1 class="text-lg font-bold tracking-wide">Sort Away</h1>
-        <p class="text-xs text-indigo-200" id="current-view-subtitle">Active View: Priority Inbox</p>
+        <p class="text-xs text-indigo-200" id="current-view-subtitle">Active View: Full Inbox</p>
       </div>
       
       <!-- Date Filter Indicator -->
@@ -44,7 +44,7 @@
     <!-- Grid Layout -->
     <div class="grid grid-cols-12 flex-1 overflow-hidden">
 
-      <!-- LEFT SIDEBAR: Calendar & Schedule -->
+      <!-- LEFT SIDEBAR: Calendar, Schedule & Priority Spam Filter -->
       <aside class="col-span-4 border-r border-slate-200 bg-slate-50 p-3.5 flex flex-col justify-between overflow-y-auto space-y-3">
         
         <!-- CALENDAR WIDGET -->
@@ -77,7 +77,7 @@
         </div>
 
         <!-- SCHEDULE CARD -->
-        <div class="bg-indigo-950 text-white p-3.5 rounded-xl shadow-md border border-indigo-800 flex-1 flex flex-col min-h-[200px]">
+        <div class="bg-indigo-950 text-white p-3.5 rounded-xl shadow-md border border-indigo-800 flex-1 flex flex-col min-h-[160px]">
           <div class="flex items-center justify-between border-b border-indigo-800/80 pb-2 mb-2.5">
             <div>
               <h3 class="text-[10px] uppercase tracking-wider text-indigo-300 font-bold">Scheduled Meetings</h3>
@@ -89,13 +89,15 @@
           <div id="integrated-schedule-list" class="space-y-2 flex-1 overflow-y-auto pr-1"></div>
         </div>
 
-        <!-- Trash Nav -->
-        <div onclick="switchView('trash')" id="nav-trash" class="cursor-pointer bg-red-50 hover:bg-red-100 p-2.5 rounded-lg border border-red-200 transition flex items-center justify-between shrink-0">
+        <!-- PRIORITY SPAM & JUNK FILTER BUTTON -->
+        <div onclick="switchView('spam')" id="nav-spam" class="cursor-pointer bg-red-50 hover:bg-red-100 p-3 rounded-lg border border-red-300 transition flex items-center justify-between shrink-0 shadow-sm">
           <div>
-            <div class="text-xs font-bold text-red-800">Spam & Trash</div>
-            <div class="text-[10px] text-red-600"><span id="trash-count">0</span> items</div>
+            <div class="text-xs font-extrabold text-red-900 flex items-center gap-1">
+              🛡️ Spam & Junk Filter
+            </div>
+            <div class="text-[10px] text-red-600 mt-0.5"><span id="spam-count" class="font-bold">0</span> items isolated</div>
           </div>
-          <span class="text-red-500 font-bold">&gt;</span>
+          <span class="text-red-600 font-bold">&gt;</span>
         </div>
 
       </aside>
@@ -106,9 +108,9 @@
         <div class="flex items-center justify-between mb-3 border-b pb-2 shrink-0">
           <div>
             <h2 id="main-view-title" class="text-base font-bold text-slate-800">
-              Unread Inbox
+              Full Inbox
             </h2>
-            <span class="text-[11px] text-slate-400" id="main-view-hint">Click "Set Client ID" to authenticate and load live messages</span>
+            <span class="text-[11px] text-slate-400" id="main-view-hint">Showing clean incoming emails</span>
           </div>
 
           <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg">
@@ -132,23 +134,31 @@
 
       </main>
 
-      <!-- RIGHT SIDEBAR: SMART FOLDERS -->
+      <!-- RIGHT SIDEBAR: FOLDER FILTERS -->
       <aside class="col-span-3 bg-slate-50 p-4 space-y-3 overflow-y-auto shrink-0">
         
+        <div onclick="switchView('full-inbox')" id="nav-full-inbox" class="cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
+          <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
+            <span>📥 Clean Inbox</span>
+            <span id="full-count-badge" class="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+          </div>
+          <p class="text-[10px] text-slate-500">Excludes detected junk & spam</p>
+        </div>
+
+        <div onclick="switchView('unread')" id="nav-unread" class="cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
+          <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
+            <span>📩 Unread Messages</span>
+            <span id="unread-count-badge" class="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+          </div>
+          <p class="text-[10px] text-slate-500">Filtered unread inbox</p>
+        </div>
+
         <div onclick="switchView('actionable')" id="nav-actionable" class="cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
           <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
             <span>⚡ Actionable / Meetings</span>
             <span id="actionable-count-badge" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
           </div>
-          <p class="text-[10px] text-slate-500">Invites, tasks, & urgent topics</p>
-        </div>
-
-        <div onclick="switchView('unread')" id="nav-unread" class="cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
-          <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
-            <span>📩 Unread Inbox</span>
-            <span id="unread-count-badge" class="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
-          </div>
-          <p class="text-[10px] text-slate-500">All unread incoming mail</p>
+          <p class="text-[10px] text-slate-500">Invites, tasks, & schedules</p>
         </div>
 
         <div onclick="switchView('starred')" id="nav-starred" class="cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
@@ -156,12 +166,7 @@
             <span>⭐ Starred Queue</span>
             <span id="starred-count-badge" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
           </div>
-          <p class="text-[10px] text-slate-500">Flagged priority messages</p>
-        </div>
-
-        <div onclick="switchView('full-inbox')" id="nav-full-inbox" class="cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm text-center transition">
-          <h3 class="font-bold text-slate-800 text-xs">All Messages</h3>
-          <p class="text-[10px] text-slate-500 mb-2">Display complete archive</p>
+          <p class="text-[10px] text-slate-500">Flagged priority mail</p>
         </div>
 
       </aside>
@@ -209,12 +214,8 @@
   <div id="add-event-modal" class="hidden fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
     <div class="bg-white w-full max-w-md rounded-xl p-5 shadow-2xl relative border border-slate-200 flex flex-col">
       <div class="flex items-center justify-between border-b pb-2 mb-3">
-        <h3 class="text-sm font-bold text-slate-800">
-          Schedule New Event
-        </h3>
-        <button type="button" onclick="closeAddEventModal()" class="text-slate-400 hover:text-slate-600 p-1 font-bold">
-          ✕
-        </button>
+        <h3 class="text-sm font-bold text-slate-800">Schedule New Event</h3>
+        <button type="button" onclick="closeAddEventModal()" class="text-slate-400 hover:text-slate-600 p-1 font-bold">✕</button>
       </div>
 
       <form onsubmit="handleCreateEvent(event)" class="space-y-3 text-xs">
@@ -240,12 +241,8 @@
         </div>
 
         <div class="flex justify-end gap-2 border-t pt-3 mt-2">
-          <button type="button" onclick="closeAddEventModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded font-semibold transition">
-            Cancel
-          </button>
-          <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded font-semibold transition">
-            Save Event
-          </button>
+          <button type="button" onclick="closeAddEventModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded font-semibold transition">Cancel</button>
+          <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded font-semibold transition">Save Event</button>
         </div>
       </form>
     </div>
@@ -255,12 +252,8 @@
   <div id="client-id-modal" class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50">
     <div class="bg-white w-full max-w-md rounded-xl p-5 shadow-2xl relative border border-slate-200 space-y-4">
       <div class="flex items-center justify-between border-b pb-2">
-        <h3 class="text-sm font-bold text-slate-800">
-          🔑 Enter Google OAuth Client ID
-        </h3>
-        <button type="button" onclick="closeClientIdModal()" class="text-slate-400 hover:text-slate-600 p-1 font-bold">
-          ✕
-        </button>
+        <h3 class="text-sm font-bold text-slate-800">🔑 Enter Google OAuth Client ID</h3>
+        <button type="button" onclick="closeClientIdModal()" class="text-slate-400 hover:text-slate-600 p-1 font-bold">✕</button>
       </div>
 
       <div>
@@ -270,26 +263,18 @@
       </div>
 
       <div class="flex justify-end gap-2 border-t pt-3">
-        <button type="button" onclick="closeClientIdModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded text-xs font-semibold transition">
-          Cancel
-        </button>
-        <button type="button" onclick="saveClientIdFromModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded text-xs font-semibold transition">
-          Save Client ID
-        </button>
+        <button type="button" onclick="closeClientIdModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded text-xs font-semibold transition">Cancel</button>
+        <button type="button" onclick="saveClientIdFromModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded text-xs font-semibold transition">Save Client ID</button>
       </div>
     </div>
   </div>
 
-  <!-- GOOGLE API KEY MODAL -->
+  <!-- API KEY MODAL -->
   <div id="api-key-modal" class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50">
     <div class="bg-white w-full max-w-md rounded-xl p-5 shadow-2xl relative border border-slate-200 space-y-4">
       <div class="flex items-center justify-between border-b pb-2">
-        <h3 class="text-sm font-bold text-slate-800">
-          ⚡ Enter Google / Gemini API Key
-        </h3>
-        <button type="button" onclick="closeApiKeyModal()" class="text-slate-400 hover:text-slate-600 p-1 font-bold">
-          ✕
-        </button>
+        <h3 class="text-sm font-bold text-slate-800">⚡ Enter Google / Gemini API Key</h3>
+        <button type="button" onclick="closeApiKeyModal()" class="text-slate-400 hover:text-slate-600 p-1 font-bold">✕</button>
       </div>
 
       <div>
@@ -299,12 +284,8 @@
       </div>
 
       <div class="flex justify-end gap-2 border-t pt-3">
-        <button type="button" onclick="closeApiKeyModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded text-xs font-semibold transition">
-          Cancel
-        </button>
-        <button type="button" onclick="saveApiKeyFromModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded text-xs font-semibold transition">
-          Save API Key
-        </button>
+        <button type="button" onclick="closeApiKeyModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded text-xs font-semibold transition">Cancel</button>
+        <button type="button" onclick="saveApiKeyFromModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded text-xs font-semibold transition">Save API Key</button>
       </div>
     </div>
   </div>
@@ -325,7 +306,7 @@
     let currentMonthIdx = new Date().getMonth();
     let selectedDate = new Date().toISOString().split('T')[0];
     let isFilterByDateActive = false;
-    let currentView = 'unread';
+    let currentView = 'full-inbox';
     let activeSortKey = 'newest';
     let calendarEvents = JSON.parse(localStorage.getItem('user_calendar_events')) || [];
 
@@ -421,11 +402,11 @@
 
     async function fetchGmailInbox() {
       const container = document.getElementById('main-feed-container');
-      container.innerHTML = `<div class="p-12 text-center text-slate-500 text-xs">Connecting to Gmail API...</div>`;
+      container.innerHTML = `<div class="p-12 text-center text-slate-500 text-xs">Connecting to Gmail API & classifying spam...</div>`;
 
       try {
         const keyQuery = googleApiKey ? `&key=${encodeURIComponent(googleApiKey)}` : '';
-        const res = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=35${keyQuery}`, {
+        const res = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=40&q=in:inbox OR in:spam OR in:trash${keyQuery}`, {
           headers: { Authorization: `Bearer ${accessToken}` }
         });
         const data = await res.json();
@@ -456,22 +437,38 @@
 
           const topic = subjectHeader ? subjectHeader.value : '(No Subject)';
           const snippet = msg.snippet || 'No snippet preview.';
+          const sender = fromHeader ? fromHeader.value : 'Unknown Sender';
           const msgDate = dateHeader ? new Date(dateHeader.value) : new Date();
           const isUnread = msg.labelIds ? msg.labelIds.includes('UNREAD') : false;
           const isStarred = msg.labelIds ? msg.labelIds.includes('STARRED') : false;
-          const isTrash = msg.labelIds ? (msg.labelIds.includes('TRASH') || msg.labelIds.includes('SPAM')) : false;
+
+          // ADVANCED SPAM & JUNK HEURISTIC DETECTOR
+          const isExplicitSpam = msg.labelIds ? (msg.labelIds.includes('SPAM') || msg.labelIds.includes('TRASH')) : false;
+          const spamKeywords = [
+            'unsubscribe', 'discount', '% off', 'sale', 'newsletter', 'no-reply', 'noreply', 
+            'promotions', 'deals', 'marketing', 'subscription', 'special offer', 'claim', 
+            'winner', 'verify your account', 'crypto', 'digest', 'order status', 'receipt', 'limited time'
+          ];
+          
+          const textMatchesSpam = spamKeywords.some(kw => 
+            topic.toLowerCase().includes(kw) || 
+            snippet.toLowerCase().includes(kw) || 
+            sender.toLowerCase().includes(kw)
+          );
+
+          const isSpam = isExplicitSpam || textMatchesSpam;
 
           const actionKeywords = ['meeting', 'schedule', 'invite', 'zoom', 'call', 'urgent', 'action', 'task', 'due', 'calendar'];
-          const isActionable = actionKeywords.some(kw => topic.toLowerCase().includes(kw) || snippet.toLowerCase().includes(kw));
+          const isActionable = !isSpam && actionKeywords.some(kw => topic.toLowerCase().includes(kw) || snippet.toLowerCase().includes(kw));
 
           return {
             id: msg.id,
-            sender: fromHeader ? fromHeader.value : 'Unknown Sender',
+            sender: sender,
             topic: topic,
             snippet: snippet,
             starred: isStarred,
             status: isUnread ? 'unread' : 'read',
-            isTrash: isTrash,
+            isSpam: isSpam,
             isActionable: isActionable,
             dateObj: msgDate,
             dateStr: msgDate.toISOString().split('T')[0],
@@ -495,18 +492,20 @@
         return;
       }
 
-      let filteredList = [...liveEmails];
+      let filteredList = [];
 
-      if (currentView === 'unread') {
-        filteredList = filteredList.filter(e => e.status === 'unread' && !e.isTrash);
+      // VIEW FILTERING (Spam isolated by default from clean views)
+      if (currentView === 'spam') {
+        filteredList = liveEmails.filter(e => e.isSpam);
+      } else if (currentView === 'unread') {
+        filteredList = liveEmails.filter(e => e.status === 'unread' && !e.isSpam);
       } else if (currentView === 'starred') {
-        filteredList = filteredList.filter(e => e.starred && !e.isTrash);
+        filteredList = liveEmails.filter(e => e.starred && !e.isSpam);
       } else if (currentView === 'actionable') {
-        filteredList = filteredList.filter(e => e.isActionable && !e.isTrash);
-      } else if (currentView === 'trash') {
-        filteredList = filteredList.filter(e => e.isTrash);
+        filteredList = liveEmails.filter(e => e.isActionable && !e.isSpam);
       } else {
-        filteredList = filteredList.filter(e => !e.isTrash);
+        // Clean Inbox (full inbox minus spam)
+        filteredList = liveEmails.filter(e => !e.isSpam);
       }
 
       if (isFilterByDateActive) {
@@ -521,10 +520,12 @@
         filteredList.sort((a, b) => a.sender.localeCompare(b.sender));
       }
 
-      document.getElementById('unread-count-badge').innerText = liveEmails.filter(e => e.status === 'unread' && !e.isTrash).length;
-      document.getElementById('starred-count-badge').innerText = liveEmails.filter(e => e.starred && !e.isTrash).length;
-      document.getElementById('actionable-count-badge').innerText = liveEmails.filter(e => e.isActionable && !e.isTrash).length;
-      document.getElementById('trash-count').innerText = liveEmails.filter(e => e.isTrash).length;
+      // Update Counts
+      document.getElementById('spam-count').innerText = liveEmails.filter(e => e.isSpam).length;
+      document.getElementById('full-count-badge').innerText = liveEmails.filter(e => !e.isSpam).length;
+      document.getElementById('unread-count-badge').innerText = liveEmails.filter(e => e.status === 'unread' && !e.isSpam).length;
+      document.getElementById('starred-count-badge').innerText = liveEmails.filter(e => e.starred && !e.isSpam).length;
+      document.getElementById('actionable-count-badge').innerText = liveEmails.filter(e => e.isActionable && !e.isSpam).length;
 
       if (filteredList.length === 0) {
         container.innerHTML = `<div class="p-12 text-center text-slate-400 text-xs">No messages matching this view or filter.</div>`;
@@ -541,6 +542,7 @@
             <span class="text-[10px] text-slate-400 font-mono">${email.displayDate}</span>
           </div>
           <div class="text-xs text-indigo-700 font-semibold truncate flex items-center gap-1.5">
+            ${email.isSpam ? '<span class="bg-red-100 text-red-800 text-[9px] px-1.5 py-0.5 rounded font-bold">Spam / Junk</span>' : ''}
             ${email.isActionable ? '<span class="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded font-bold">Action</span>' : ''}
             ${email.topic}
           </div>
@@ -593,6 +595,9 @@
 
       const tagContainer = document.getElementById('email-detail-tags');
       tagContainer.innerHTML = '';
+      if (email.isSpam) {
+        tagContainer.innerHTML += `<span class="bg-red-100 text-red-800 text-[10px] px-2 py-0.5 rounded font-bold">Spam / Junk</span>`;
+      }
       if (email.isActionable) {
         tagContainer.innerHTML += `<span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded font-bold">Actionable / Meeting</span>`;
       }
@@ -608,10 +613,10 @@
     function switchView(viewName) {
       currentView = viewName;
       document.getElementById('main-view-title').innerText = 
-        viewName === 'unread' ? 'Unread Inbox' : 
+        viewName === 'spam' ? 'Spam & Junk Filter' : 
+        viewName === 'unread' ? 'Unread Messages' : 
         viewName === 'starred' ? 'Starred Queue' : 
-        viewName === 'actionable' ? 'Actionable / Meetings' : 
-        viewName === 'trash' ? 'Spam & Trash' : 'All Messages';
+        viewName === 'actionable' ? 'Actionable / Meetings' : 'Clean Inbox';
       renderFeed();
     }
 
@@ -723,9 +728,7 @@
             <div class="font-bold text-white">${ev.title}</div>
             <div class="text-[10px] text-amber-300 font-mono">${ev.time}</div>
           </div>
-          <button type="button" onclick="deleteEvent(${ev.id})" class="text-indigo-400 hover:text-red-400 p-1 font-bold">
-            ✕
-          </button>
+          <button type="button" onclick="deleteEvent(${ev.id})" class="text-indigo-400 hover:text-red-400 p-1 font-bold">✕</button>
         `;
         container.appendChild(item);
       });
