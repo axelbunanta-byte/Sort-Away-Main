@@ -177,61 +177,6 @@
     </div>
   </div>
 
-  <!-- EVENT DETAIL MODAL -->
-  <div id="event-detail-modal" class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50">
-    <div class="bg-white w-full max-w-md rounded-xl p-5 shadow-2xl relative border border-slate-200 flex flex-col space-y-4">
-      <div class="flex items-center justify-between border-b pb-3">
-        <div class="flex items-center gap-2">
-          <span class="p-1.5 bg-amber-100 text-amber-800 rounded-lg">
-            <i data-lucide="calendar" class="w-4 h-4"></i>
-          </span>
-          <div>
-            <h3 class="text-xs uppercase font-bold text-slate-400">Scheduled Event Details</h3>
-            <p id="event-detail-title" class="text-base font-bold text-slate-900 leading-snug">Event Title</p>
-          </div>
-        </div>
-        <button onclick="closeEventDetailModal()" class="text-slate-400 hover:text-slate-600 p-1">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <div class="space-y-3 text-xs">
-        <div class="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-lg border border-slate-100">
-          <div class="flex items-center gap-2">
-            <i data-lucide="calendar-days" class="w-4 h-4 text-indigo-600"></i>
-            <div>
-              <span class="text-[10px] text-slate-400 uppercase font-bold block">Date</span>
-              <span id="event-detail-date" class="font-bold text-slate-700 font-mono">2026-10-12</span>
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <i data-lucide="clock" class="w-4 h-4 text-amber-500"></i>
-            <div>
-              <span class="text-[10px] text-slate-400 uppercase font-bold block">Time</span>
-              <span id="event-detail-time" class="font-bold text-slate-700 font-mono">09:00 AM</span>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <span class="text-[10px] text-slate-400 uppercase font-bold block mb-1">Agenda & Notes</span>
-          <div id="event-detail-notes" class="bg-slate-50 p-3 rounded-lg border border-slate-100 text-slate-700 leading-relaxed min-h-[60px]">
-            No additional notes provided.
-          </div>
-        </div>
-      </div>
-
-      <div class="flex items-center justify-between border-t pt-3">
-        <button onclick="deleteCurrentEvent()" class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1">
-          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete Event
-        </button>
-        <button onclick="closeEventDetailModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-1.5 rounded-lg text-xs font-bold transition">
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- ADD EVENT MODAL -->
   <div id="add-event-modal" class="hidden fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
     <div class="bg-white w-full max-w-md rounded-xl p-5 shadow-2xl relative border border-slate-200 flex flex-col">
@@ -323,11 +268,9 @@
     let selectedDate = new Date().toISOString().split('T')[0];
     let isFilterByDateActive = false;
     let currentView = 'unread';
-    let selectedEvent = null;
     let activeSortKey = 'newest';
-    const calendarEvents = {};
+    let calendarEvents = JSON.parse(localStorage.getItem('user_calendar_events')) || [];
 
-    // --- CLIENT ID MODAL HANDLERS ---
     function openClientIdModal() {
       document.getElementById('modal-client-id-input').value = googleClientId;
       document.getElementById('client-id-modal').classList.remove('hidden');
@@ -352,7 +295,6 @@
       alert("Client ID saved! Click 'Sign In with Google' to load your Gmail inbox.");
     }
 
-    // --- GOOGLE OAUTH & GMAIL API ---
     function loginWithGoogle() {
       if (!googleClientId) {
         openClientIdModal();
@@ -477,6 +419,14 @@
         filteredList = filteredList.filter(e => e.dateStr === selectedDate);
       }
 
+      if (activeSortKey === 'newest') {
+        filteredList.sort((a, b) => b.dateObj - a.dateObj);
+      } else if (activeSortKey === 'oldest') {
+        filteredList.sort((a, b) => a.dateObj - b.dateObj);
+      } else if (activeSortKey === 'sender') {
+        filteredList.sort((a, b) => a.sender.localeCompare(b.sender));
+      }
+
       document.getElementById('unread-count-badge').innerText = liveEmails.filter(e => e.status === 'unread').length;
       document.getElementById('starred-count-badge').innerText = liveEmails.filter(e => e.starred).length;
 
@@ -504,12 +454,15 @@
 
     function switchView(viewName) {
       currentView = viewName;
+      document.getElementById('main-view-title').innerText = 
+        viewName === 'unread' ? 'Unread Inbox' : viewName === 'starred' ? 'Starred Folder' : 'Full Inbox';
       renderFeed();
     }
 
     function resetDateFilter() {
       isFilterByDateActive = false;
       document.getElementById('active-date-label').innerText = 'All Dates';
+      renderCalendar();
       renderFeed();
     }
 
@@ -549,6 +502,7 @@
           document.getElementById('active-date-label').innerText = selectedDate;
           renderCalendar();
           renderFeed();
+          renderScheduleList();
         };
         grid.appendChild(btn);
       }
@@ -560,6 +514,7 @@
     }
 
     function openAddEventModal() {
+      document.getElementById('event-date-input').value = selectedDate;
       document.getElementById('add-event-modal').classList.remove('hidden');
     }
 
@@ -569,12 +524,68 @@
 
     function handleCreateEvent(e) {
       e.preventDefault();
+      const title = document.getElementById('event-title-input').value.trim();
+      const date = document.getElementById('event-date-input').value;
+      const time = document.getElementById('event-time-input').value;
+      const notes = document.getElementById('event-notes-input').value.trim();
+
+      if (!title || !date) return;
+
+      const newEvent = { id: Date.now(), title, date, time, notes };
+      calendarEvents.push(newEvent);
+      localStorage.setItem('user_calendar_events', JSON.stringify(calendarEvents));
+
+      document.getElementById('event-title-input').value = '';
+      document.getElementById('event-notes-input').value = '';
       closeAddEventModal();
+      
+      renderScheduleList();
+    }
+
+    function renderScheduleList() {
+      const container = document.getElementById('integrated-schedule-list');
+      const countBadge = document.getElementById('event-count-badge');
+      const dateHeading = document.getElementById('schedule-date-heading');
+
+      dateHeading.innerText = selectedDate;
+      
+      const dayEvents = calendarEvents.filter(ev => ev.date === selectedDate);
+      countBadge.innerText = `${dayEvents.length} Events`;
+      container.innerHTML = '';
+
+      if (dayEvents.length === 0) {
+        container.innerHTML = `<div class="text-[11px] text-indigo-300 italic p-2">No scheduled events for this date.</div>`;
+        return;
+      }
+
+      dayEvents.forEach(ev => {
+        const item = document.createElement('div');
+        item.className = "bg-indigo-900/60 p-2 rounded-lg border border-indigo-700/50 flex justify-between items-center text-xs";
+        item.innerHTML = `
+          <div>
+            <div class="font-bold text-white">${ev.title}</div>
+            <div class="text-[10px] text-amber-300 font-mono">${ev.time}</div>
+          </div>
+          <button onclick="deleteEvent(${ev.id})" class="text-indigo-400 hover:text-red-400 p-1">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        `;
+        container.appendChild(item);
+      });
+
+      lucide.createIcons();
+    }
+
+    function deleteEvent(id) {
+      calendarEvents = calendarEvents.filter(ev => ev.id !== id);
+      localStorage.setItem('user_calendar_events', JSON.stringify(calendarEvents));
+      renderScheduleList();
     }
 
     document.addEventListener("DOMContentLoaded", () => {
       document.getElementById('calendar-month-title').innerText = `${monthNames[currentMonthIdx]} ${currentYear}`;
       renderCalendar();
+      renderScheduleList();
       lucide.createIcons();
     });
   </script>
