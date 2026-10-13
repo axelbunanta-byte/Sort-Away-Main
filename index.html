@@ -19,7 +19,7 @@
       <div class="flex items-center gap-3">
         <div>
           <h1 class="text-lg font-bold tracking-wide">Smart Mail Filter</h1>
-          <p class="text-xs text-indigo-200" id="current-view-subtitle">Active View: Priority Unread</p>
+          <p class="text-xs text-indigo-200" id="current-view-subtitle">Active View: Full Inbox (Unfiltered)</p>
         </div>
       </div>
       
@@ -96,13 +96,13 @@
           <div id="integrated-schedule-list" class="space-y-2 flex-1 overflow-y-auto pr-1"></div>
         </div>
 
-        <!-- Trash / Spam Nav -->
+        <!-- Trash / Spam Nav Filter -->
         <div onclick="switchView('trash')" id="nav-trash" class="folder-nav-btn cursor-pointer bg-red-50 hover:bg-red-100 p-2.5 rounded-lg border border-red-200 transition flex items-center justify-between shrink-0">
           <div class="flex items-center gap-2">
             <i data-lucide="shield-alert" class="w-4 h-4 text-red-600"></i>
             <div>
               <div class="text-xs font-bold text-red-800">Spam & Junk Filter</div>
-              <div class="text-[10px] text-red-600"><span id="trash-count">0</span> items isolated</div>
+              <div class="text-[10px] text-red-600"><span id="trash-count">0</span> items detected</div>
             </div>
           </div>
           <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-red-500"></i>
@@ -116,9 +116,9 @@
         <div class="flex items-center justify-between mb-3 border-b pb-2 shrink-0">
           <div>
             <h2 id="main-view-title" class="text-base font-bold text-slate-800 flex items-center gap-2">
-              Priority Unread Inbox
+              Full Inbox
             </h2>
-            <span class="text-[11px] text-slate-400" id="main-view-hint">Unimportant mail and promotions are automatically filtered to Junk</span>
+            <span class="text-[11px] text-slate-400" id="main-view-hint">Showing complete, unfiltered inbox feed</span>
           </div>
 
           <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg">
@@ -143,17 +143,19 @@
 
       </main>
 
-      <!-- RIGHT SIDEBAR: SMART FOLDER NAVIGATION -->
+      <!-- RIGHT SIDEBAR: SMART FOLDER FILTERS -->
       <aside class="col-span-3 bg-slate-50 p-4 space-y-3 overflow-y-auto shrink-0">
         
-        <div onclick="switchView('actionable')" id="nav-actionable" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
-          <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
-            <span class="flex items-center gap-1.5">
-              <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i> Actionable / Meetings
-            </span>
-            <span id="actionable-count-badge" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
-          </div>
-          <p class="text-[10px] text-slate-500">Invites, meetings, & tasks</p>
+        <!-- Default Unfiltered View -->
+        <div onclick="switchView('full-inbox')" id="nav-full-inbox" class="folder-nav-btn cursor-pointer bg-indigo-50 border-indigo-300 p-3 rounded-lg border shadow-sm text-center transition">
+          <i data-lucide="inbox" class="w-5 h-5 text-indigo-600 mx-auto mb-1"></i>
+          <h3 class="font-bold text-indigo-900 text-xs">Full Inbox (Default)</h3>
+          <p class="text-[10px] text-indigo-600 mb-1">Display all messages unfiltered</p>
+          <span id="full-count-badge" class="bg-indigo-200 text-indigo-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0 Messages</span>
+        </div>
+
+        <div class="border-t border-slate-200 my-2 pt-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+          Filter Views
         </div>
 
         <div onclick="switchView('unread')" id="nav-unread" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
@@ -163,7 +165,17 @@
             </span>
             <span id="unread-count-badge" class="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
           </div>
-          <p class="text-[10px] text-slate-500">Important messages only</p>
+          <p class="text-[10px] text-slate-500">Filters non-junk unread messages</p>
+        </div>
+
+        <div onclick="switchView('actionable')" id="nav-actionable" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
+          <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i> Actionable / Meetings
+            </span>
+            <span id="actionable-count-badge" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+          </div>
+          <p class="text-[10px] text-slate-500">Filters invites, meetings, & tasks</p>
         </div>
 
         <div onclick="switchView('starred')" id="nav-starred" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
@@ -173,13 +185,7 @@
             </span>
             <span id="starred-count-badge" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
           </div>
-          <p class="text-[10px] text-slate-500">Flagged priority messages</p>
-        </div>
-
-        <div onclick="switchView('full-inbox')" id="nav-full-inbox" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm text-center transition">
-          <i data-lucide="inbox" class="w-5 h-5 text-indigo-600 mx-auto mb-1"></i>
-          <h3 class="font-bold text-slate-800 text-xs">All Messages</h3>
-          <p class="text-[10px] text-slate-500 mb-2">Display complete inbox</p>
+          <p class="text-[10px] text-slate-500">Filters flagged priority messages</p>
         </div>
 
       </aside>
@@ -307,7 +313,7 @@
     let currentMonthIdx = new Date().getMonth();
     let selectedDate = new Date().toISOString().split('T')[0];
     let isFilterByDateActive = false;
-    let currentView = 'unread';
+    let currentView = 'full-inbox';
     let activeSortKey = 'newest';
     let calendarEvents = JSON.parse(localStorage.getItem('user_calendar_events')) || [];
 
@@ -382,7 +388,7 @@
 
     async function fetchGmailInbox() {
       const container = document.getElementById('main-feed-container');
-      container.innerHTML = `<div class="p-12 text-center text-slate-500 text-xs">Sorting inbox emails and isolating spam/junk...</div>`;
+      container.innerHTML = `<div class="p-12 text-center text-slate-500 text-xs">Loading complete inbox and analyzing messages...</div>`;
 
       try {
         const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=40&q=in:inbox OR in:spam OR in:trash', {
@@ -422,7 +428,7 @@
           const isUnread = msg.labelIds ? msg.labelIds.includes('UNREAD') : false;
           const isStarred = msg.labelIds ? msg.labelIds.includes('STARRED') : false;
           
-          // STRICT SPAM & JUNK CLASSIFIER
+          // JUNK / SPAM CLASSIFIER
           const isExplicitSpam = msg.labelIds ? (msg.labelIds.includes('SPAM') || msg.labelIds.includes('TRASH')) : false;
           const junkKeywords = [
             'unsubscribe', 'discount', '% off', 'sale', 'newsletter', 'no-reply', 'noreply', 
@@ -473,19 +479,19 @@
         return;
       }
 
-      let filteredList = [...liveEmails];
+      let filteredList = [];
 
-      // Folder Filtering Logic
-      if (currentView === 'unread') {
-        filteredList = filteredList.filter(e => e.status === 'unread' && !e.isJunk);
+      // VIEW FILTER SELECTION
+      if (currentView === 'full-inbox') {
+        filteredList = [...liveEmails];
+      } else if (currentView === 'unread') {
+        filteredList = liveEmails.filter(e => e.status === 'unread' && !e.isJunk);
       } else if (currentView === 'starred') {
-        filteredList = filteredList.filter(e => e.starred && !e.isJunk);
+        filteredList = liveEmails.filter(e => e.starred && !e.isJunk);
       } else if (currentView === 'actionable') {
-        filteredList = filteredList.filter(e => e.isActionable && !e.isJunk);
+        filteredList = liveEmails.filter(e => e.isActionable && !e.isJunk);
       } else if (currentView === 'trash') {
-        filteredList = filteredList.filter(e => e.isJunk);
-      } else {
-        filteredList = filteredList.filter(e => !e.isJunk);
+        filteredList = liveEmails.filter(e => e.isJunk);
       }
 
       // Filter by Calendar Date
@@ -503,6 +509,7 @@
       }
 
       // Update Sidebar Badges
+      document.getElementById('full-count-badge').innerText = `${liveEmails.length} Messages`;
       document.getElementById('unread-count-badge').innerText = liveEmails.filter(e => e.status === 'unread' && !e.isJunk).length;
       document.getElementById('starred-count-badge').innerText = liveEmails.filter(e => e.starred && !e.isJunk).length;
       document.getElementById('actionable-count-badge').innerText = liveEmails.filter(e => e.isActionable && !e.isJunk).length;
@@ -562,11 +569,17 @@
 
     function switchView(viewName) {
       currentView = viewName;
+      
       document.getElementById('main-view-title').innerText = 
+        viewName === 'full-inbox' ? 'Full Inbox' :
         viewName === 'unread' ? 'Priority Unread Inbox' : 
         viewName === 'starred' ? 'Starred Queue' : 
         viewName === 'actionable' ? 'Actionable / Meetings' : 
         viewName === 'trash' ? 'Spam & Junk Filter' : 'All Messages';
+
+      document.getElementById('current-view-subtitle').innerText = 
+        viewName === 'full-inbox' ? 'Active View: Full Inbox (Unfiltered)' : `Active View: Filtered (${viewName})`;
+
       renderFeed();
     }
 
