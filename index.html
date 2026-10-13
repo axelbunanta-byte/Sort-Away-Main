@@ -19,7 +19,7 @@
       <div class="flex items-center gap-3">
         <div>
           <h1 class="text-lg font-bold tracking-wide">Smart Mail Filter</h1>
-          <p class="text-xs text-indigo-200" id="current-view-subtitle">Active View: Priority Inbox</p>
+          <p class="text-xs text-indigo-200" id="current-view-subtitle">Active View: Priority Unread</p>
         </div>
       </div>
       
@@ -118,7 +118,7 @@
             <h2 id="main-view-title" class="text-base font-bold text-slate-800 flex items-center gap-2">
               Priority Unread Inbox
             </h2>
-            <span class="text-[11px] text-slate-400" id="main-view-hint">Spam and low-priority promotions are automatically separated</span>
+            <span class="text-[11px] text-slate-400" id="main-view-hint">Unimportant mail and promotions are automatically filtered to Junk</span>
           </div>
 
           <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg">
@@ -153,7 +153,7 @@
             </span>
             <span id="actionable-count-badge" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
           </div>
-          <p class="text-[10px] text-slate-500">Invites, tasks, & urgent topics</p>
+          <p class="text-[10px] text-slate-500">Invites, meetings, & tasks</p>
         </div>
 
         <div onclick="switchView('unread')" id="nav-unread" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
@@ -163,17 +163,7 @@
             </span>
             <span id="unread-count-badge" class="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
           </div>
-          <p class="text-[10px] text-slate-500">Important primary messages</p>
-        </div>
-
-        <div onclick="switchView('promo')" id="nav-promo" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
-          <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
-            <span class="flex items-center gap-1.5">
-              <i data-lucide="tag" class="w-4 h-4 text-blue-500"></i> Promotions / Newsletters
-            </span>
-            <span id="promo-count-badge" class="bg-blue-100 text-blue-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
-          </div>
-          <p class="text-[10px] text-slate-500">Non-essential newsletters & ads</p>
+          <p class="text-[10px] text-slate-500">Important messages only</p>
         </div>
 
         <div onclick="switchView('starred')" id="nav-starred" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
@@ -189,11 +179,41 @@
         <div onclick="switchView('full-inbox')" id="nav-full-inbox" class="folder-nav-btn cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm text-center transition">
           <i data-lucide="inbox" class="w-5 h-5 text-indigo-600 mx-auto mb-1"></i>
           <h3 class="font-bold text-slate-800 text-xs">All Messages</h3>
-          <p class="text-[10px] text-slate-500 mb-2">Display complete archive</p>
+          <p class="text-[10px] text-slate-500 mb-2">Display complete inbox</p>
         </div>
 
       </aside>
 
+    </div>
+  </div>
+
+  <!-- READ EMAIL CONTENT MODAL -->
+  <div id="email-detail-modal" class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50">
+    <div class="bg-white w-full max-w-xl rounded-xl p-6 shadow-2xl relative border border-slate-200 flex flex-col space-y-4">
+      <div class="flex items-start justify-between border-b pb-3">
+        <div class="space-y-1 pr-4">
+          <div id="email-detail-tags" class="flex items-center gap-2"></div>
+          <h3 id="email-detail-subject" class="text-base font-bold text-slate-900 leading-snug">Subject Title</h3>
+          <div class="text-xs text-slate-500 flex items-center gap-2">
+            <span class="font-semibold text-slate-700" id="email-detail-sender">Sender Name</span>
+            <span>&bull;</span>
+            <span id="email-detail-date" class="font-mono text-[11px]">Date</span>
+          </div>
+        </div>
+        <button onclick="closeEmailModal()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="bg-slate-50 p-4 rounded-lg border border-slate-100 text-xs text-slate-700 leading-relaxed max-h-72 overflow-y-auto" id="email-detail-body">
+        Message body content...
+      </div>
+
+      <div class="flex justify-end border-t pt-3">
+        <button onclick="closeEmailModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded text-xs font-semibold transition">
+          Close
+        </button>
+      </div>
     </div>
   </div>
 
@@ -362,10 +382,9 @@
 
     async function fetchGmailInbox() {
       const container = document.getElementById('main-feed-container');
-      container.innerHTML = `<div class="p-12 text-center text-slate-500 text-xs">Scanning Gmail for inbox messages, spam, and promotions...</div>`;
+      container.innerHTML = `<div class="p-12 text-center text-slate-500 text-xs">Sorting inbox emails and isolating spam/junk...</div>`;
 
       try {
-        // Includes inbox, spam, and trash in query
         const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=40&q=in:inbox OR in:spam OR in:trash', {
           headers: { Authorization: `Bearer ${accessToken}` }
         });
@@ -376,7 +395,7 @@
         }
 
         if (!data.messages || data.messages.length === 0) {
-          container.innerHTML = `<div class="p-12 text-center text-slate-400 text-xs">No emails found in this Gmail inbox.</div>`;
+          container.innerHTML = `<div class="p-12 text-center text-slate-400 text-xs">No emails found in this Gmail account.</div>`;
           return;
         }
 
@@ -396,25 +415,31 @@
           const dateHeader = headers.find(h => h.name.toLowerCase() === 'date');
 
           const topic = subjectHeader ? subjectHeader.value : '(No Subject)';
-          const snippet = msg.snippet || '';
+          const snippet = msg.snippet || 'No text snippet available.';
           const sender = fromHeader ? fromHeader.value : 'Unknown Sender';
           const msgDate = dateHeader ? new Date(dateHeader.value) : new Date();
 
           const isUnread = msg.labelIds ? msg.labelIds.includes('UNREAD') : false;
           const isStarred = msg.labelIds ? msg.labelIds.includes('STARRED') : false;
           
-          // Spam & Junk Detection
+          // STRICT SPAM & JUNK CLASSIFIER
           const isExplicitSpam = msg.labelIds ? (msg.labelIds.includes('SPAM') || msg.labelIds.includes('TRASH')) : false;
-          const spamKeywords = ['winner', 'verify your account', 'claim now', 'casino', 'lottery', 'crypto bonus', 'free gift'];
-          const isSpamContent = spamKeywords.some(kw => topic.toLowerCase().includes(kw) || snippet.toLowerCase().includes(kw));
-          const isJunk = isExplicitSpam || isSpamContent;
+          const junkKeywords = [
+            'unsubscribe', 'discount', '% off', 'sale', 'newsletter', 'no-reply', 'noreply', 
+            'promotions', 'deals', 'marketing', 'subscription', 'special offer', 'claim', 
+            'winner', 'verify your account', 'crypto', 'digest', 'order status', 'receipt'
+          ];
+          
+          const isJunkText = junkKeywords.some(kw => 
+            topic.toLowerCase().includes(kw) || 
+            snippet.toLowerCase().includes(kw) || 
+            sender.toLowerCase().includes(kw)
+          );
+          
+          const isJunk = isExplicitSpam || isJunkText;
 
-          // Promotional / Low Priority Detection
-          const promoKeywords = ['unsubscribe', 'discount', '% off', 'sale', 'newsletter', 'no-reply', 'promotions', 'deals', 'marketing'];
-          const isPromo = !isJunk && promoKeywords.some(kw => topic.toLowerCase().includes(kw) || snippet.toLowerCase().includes(kw) || sender.toLowerCase().includes('no-reply'));
-
-          // Actionable / Meeting Detection
-          const actionKeywords = ['meeting', 'schedule', 'invite', 'zoom', 'call', 'urgent', 'action required', 'due date', 'calendar'];
+          // ACTIONABLE / MEETING DETECTOR
+          const actionKeywords = ['meeting', 'schedule', 'invite', 'zoom', 'call', 'urgent', 'action required', 'due date', 'calendar', 'sync'];
           const isActionable = !isJunk && actionKeywords.some(kw => topic.toLowerCase().includes(kw) || snippet.toLowerCase().includes(kw));
 
           return {
@@ -425,7 +450,6 @@
             starred: isStarred,
             status: isUnread ? 'unread' : 'read',
             isJunk: isJunk,
-            isPromo: isPromo,
             isActionable: isActionable,
             dateObj: msgDate,
             dateStr: msgDate.toISOString().split('T')[0],
@@ -453,13 +477,11 @@
 
       // Folder Filtering Logic
       if (currentView === 'unread') {
-        filteredList = filteredList.filter(e => e.status === 'unread' && !e.isJunk && !e.isPromo);
+        filteredList = filteredList.filter(e => e.status === 'unread' && !e.isJunk);
       } else if (currentView === 'starred') {
         filteredList = filteredList.filter(e => e.starred && !e.isJunk);
       } else if (currentView === 'actionable') {
         filteredList = filteredList.filter(e => e.isActionable && !e.isJunk);
-      } else if (currentView === 'promo') {
-        filteredList = filteredList.filter(e => e.isPromo && !e.isJunk);
       } else if (currentView === 'trash') {
         filteredList = filteredList.filter(e => e.isJunk);
       } else {
@@ -481,10 +503,9 @@
       }
 
       // Update Sidebar Badges
-      document.getElementById('unread-count-badge').innerText = liveEmails.filter(e => e.status === 'unread' && !e.isJunk && !e.isPromo).length;
+      document.getElementById('unread-count-badge').innerText = liveEmails.filter(e => e.status === 'unread' && !e.isJunk).length;
       document.getElementById('starred-count-badge').innerText = liveEmails.filter(e => e.starred && !e.isJunk).length;
       document.getElementById('actionable-count-badge').innerText = liveEmails.filter(e => e.isActionable && !e.isJunk).length;
-      document.getElementById('promo-count-badge').innerText = liveEmails.filter(e => e.isPromo && !e.isJunk).length;
       document.getElementById('trash-count').innerText = liveEmails.filter(e => e.isJunk).length;
 
       if (filteredList.length === 0) {
@@ -494,15 +515,15 @@
 
       filteredList.forEach((email) => {
         const card = document.createElement('div');
-        card.className = "p-4 bg-white border border-slate-200 rounded-lg hover:border-indigo-400 cursor-pointer transition flex flex-col space-y-1";
+        card.className = "p-4 bg-white border border-slate-200 rounded-lg hover:border-indigo-400 cursor-pointer transition flex flex-col space-y-1 shadow-sm";
+        card.onclick = () => openEmailModal(email.id);
         card.innerHTML = `
           <div class="flex items-center justify-between text-xs font-bold text-slate-800">
             <span class="truncate max-w-[220px]">${email.sender}</span>
             <span class="text-[10px] text-slate-400 font-mono">${email.displayDate}</span>
           </div>
           <div class="text-xs text-indigo-700 font-semibold truncate flex items-center gap-1.5">
-            ${email.isJunk ? '<span class="bg-red-100 text-red-800 text-[9px] px-1.5 py-0.5 rounded font-bold">Spam</span>' : ''}
-            ${email.isPromo ? '<span class="bg-blue-100 text-blue-800 text-[9px] px-1.5 py-0.5 rounded font-bold">Promo</span>' : ''}
+            ${email.isJunk ? '<span class="bg-red-100 text-red-800 text-[9px] px-1.5 py-0.5 rounded font-bold">Junk</span>' : ''}
             ${email.isActionable ? '<span class="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded font-bold">Action</span>' : ''}
             ${email.topic}
           </div>
@@ -514,13 +535,37 @@
       lucide.createIcons();
     }
 
+    function openEmailModal(emailId) {
+      const email = liveEmails.find(e => e.id === emailId);
+      if (!email) return;
+
+      document.getElementById('email-detail-subject').innerText = email.topic;
+      document.getElementById('email-detail-sender').innerText = email.sender;
+      document.getElementById('email-detail-date').innerText = email.displayDate;
+      document.getElementById('email-detail-body').innerText = email.snippet;
+
+      const tagContainer = document.getElementById('email-detail-tags');
+      tagContainer.innerHTML = '';
+      if (email.isJunk) {
+        tagContainer.innerHTML += `<span class="bg-red-100 text-red-800 text-[10px] px-2 py-0.5 rounded font-bold">Junk / Spam</span>`;
+      }
+      if (email.isActionable) {
+        tagContainer.innerHTML += `<span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded font-bold">Actionable / Meeting</span>`;
+      }
+
+      document.getElementById('email-detail-modal').classList.remove('hidden');
+    }
+
+    function closeEmailModal() {
+      document.getElementById('email-detail-modal').classList.add('hidden');
+    }
+
     function switchView(viewName) {
       currentView = viewName;
       document.getElementById('main-view-title').innerText = 
         viewName === 'unread' ? 'Priority Unread Inbox' : 
         viewName === 'starred' ? 'Starred Queue' : 
         viewName === 'actionable' ? 'Actionable / Meetings' : 
-        viewName === 'promo' ? 'Promotions & Newsletters' :
         viewName === 'trash' ? 'Spam & Junk Filter' : 'All Messages';
       renderFeed();
     }
