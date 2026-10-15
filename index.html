@@ -19,20 +19,17 @@
         <p class="text-xs text-indigo-200" id="current-view-subtitle">Active View: Unread Inbox</p>
       </div>
       
-      <!-- Date Filter Indicator & Clear Filter Button -->
-      <div class="flex items-center gap-2 bg-indigo-800/80 px-3 py-1.5 rounded-lg border border-indigo-500 text-xs">
-        <span>Date Filter: <strong id="active-date-label" class="text-amber-300 font-mono">All Dates</strong></span>
-        <button type="button" onclick="resetDateFilter()" class="ml-2 text-[10px] bg-amber-400 hover:bg-amber-300 text-indigo-950 font-bold px-2 py-0.5 rounded transition">
-          ← Reset Calendar Date
+      <!-- Prominent High-Visibility Date Reset Control -->
+      <div class="flex items-center gap-3 bg-indigo-900/90 px-4 py-2 rounded-xl border border-indigo-500 shadow-inner text-xs">
+        <span>Date Filter: <strong id="active-date-label" class="text-amber-300 font-mono text-sm ml-1">All Dates</strong></span>
+        <button type="button" onclick="resetDateFilter()" class="bg-amber-400 hover:bg-amber-300 text-indigo-950 font-extrabold text-xs px-3.5 py-1.5 rounded-lg shadow transition transform active:scale-95 flex items-center gap-1">
+          <span>←</span> SHOW ALL DATES
         </button>
       </div>
 
-      <!-- Auth Bar & API Keys -->
+      <!-- Auth Bar -->
       <div id="user-profile-bar" class="flex items-center space-x-2">
-        <button type="button" onclick="openApiKeyModal()" class="bg-indigo-900 hover:bg-indigo-800 text-indigo-200 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-600 transition">
-          ⚡ Set API Key
-        </button>
-        <button type="button" onclick="openClientIdModal()" class="bg-indigo-900 hover:bg-indigo-800 text-indigo-200 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-600 transition">
+        <button type="button" onclick="openClientIdModal()" class="bg-indigo-900 hover:bg-indigo-800 text-indigo-200 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-600 transition font-medium">
           🔑 Set Client ID
         </button>
         <button type="button" id="login-btn" onclick="loginWithGoogle()" class="bg-amber-400 hover:bg-amber-300 text-indigo-950 font-bold text-xs px-3 py-1.5 rounded-lg shadow transition">
@@ -63,7 +60,7 @@
             </div>
 
             <button type="button" onclick="openAddEventModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1 rounded-lg text-[11px] font-bold transition shadow-sm">
-              + Add
+              + Add Event
             </button>
           </div>
 
@@ -192,12 +189,6 @@
         </button>
       </div>
 
-      <!-- AI Summary Box -->
-      <div id="ai-summary-box" class="bg-indigo-50 border border-indigo-200 p-3 rounded-lg text-xs text-indigo-900 font-sans">
-        <div class="font-bold text-indigo-700 mb-1 flex items-center gap-1">✨ AI Summary Trial</div>
-        <div id="ai-summary-text" class="italic text-indigo-800">Set API Key to try AI summary...</div>
-      </div>
-
       <div class="bg-slate-50 p-4 rounded-lg border border-slate-100 text-xs text-slate-700 leading-relaxed max-h-72 overflow-y-auto" id="email-detail-body">
         Message body content...
       </div>
@@ -269,30 +260,8 @@
     </div>
   </div>
 
-  <!-- API KEY MODAL -->
-  <div id="api-key-modal" class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50">
-    <div class="bg-white w-full max-w-md rounded-xl p-5 shadow-2xl relative border border-slate-200 space-y-4">
-      <div class="flex items-center justify-between border-b pb-2">
-        <h3 class="text-sm font-bold text-slate-800">⚡ Enter Google / Gemini API Key</h3>
-        <button type="button" onclick="closeApiKeyModal()" class="text-slate-400 hover:text-slate-600 p-1 font-bold">✕</button>
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-slate-700 mb-1">API Key</label>
-        <input id="modal-api-key-input" type="text" placeholder="AIzaSy..." class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none font-mono">
-        <p class="text-[10px] text-slate-400 mt-1">Paste the API key provided by your teacher.</p>
-      </div>
-
-      <div class="flex justify-end gap-2 border-t pt-3">
-        <button type="button" onclick="closeApiKeyModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded text-xs font-semibold transition">Cancel</button>
-        <button type="button" onclick="saveApiKeyFromModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded text-xs font-semibold transition">Save API Key</button>
-      </div>
-    </div>
-  </div>
-
   <script>
     let googleClientId = localStorage.getItem('user_google_client_id') || '';
-    let googleApiKey = localStorage.getItem('user_google_api_key') || '';
     let accessToken = null;
     let currentUserProfile = null;
     let liveEmails = [];
@@ -332,22 +301,6 @@
       localStorage.setItem('user_google_client_id', googleClientId);
       closeClientIdModal();
       alert("Client ID saved! Click 'Sign In with Google' to load your Gmail inbox.");
-    }
-
-    function openApiKeyModal() {
-      document.getElementById('modal-api-key-input').value = googleApiKey;
-      document.getElementById('api-key-modal').classList.remove('hidden');
-    }
-
-    function closeApiKeyModal() {
-      document.getElementById('api-key-modal').classList.add('hidden');
-    }
-
-    function saveApiKeyFromModal() {
-      googleApiKey = document.getElementById('modal-api-key-input').value.trim();
-      localStorage.setItem('user_google_api_key', googleApiKey);
-      closeApiKeyModal();
-      alert("API Key saved!");
     }
 
     function loginWithGoogle() {
@@ -405,8 +358,7 @@
       container.innerHTML = `<div class="p-12 text-center text-slate-500 text-xs">Connecting to Gmail API & classifying inbox...</div>`;
 
       try {
-        const keyQuery = googleApiKey ? `&key=${encodeURIComponent(googleApiKey)}` : '';
-        const res = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=40&q=in:inbox OR in:spam OR in:trash${keyQuery}`, {
+        const res = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=40&q=in:inbox OR in:spam OR in:trash`, {
           headers: { Authorization: `Bearer ${accessToken}` }
         });
         const data = await res.json();
@@ -421,7 +373,7 @@
         }
 
         const emailPromises = data.messages.map(async (msg) => {
-          const detailRes = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?${keyQuery}`, {
+          const detailRes = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}`, {
             headers: { Authorization: `Bearer ${accessToken}` }
           });
           return await detailRes.json();
@@ -552,43 +504,11 @@
       });
     }
 
-    async function generateAiSummary(emailText) {
-      const summaryTextElem = document.getElementById('ai-summary-text');
-      if (!googleApiKey) {
-        summaryTextElem.innerText = "Click 'Set API Key' in top bar to enable AI email summaries.";
-        return;
-      }
-
-      summaryTextElem.innerText = "Generating AI summary...";
-
-      try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(googleApiKey)}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              parts: [{ text: `Summarize this email in one concise sentence: ${emailText}` }]
-            }]
-          })
-        });
-
-        const data = await response.json();
-        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-          summaryTextElem.innerText = data.candidates[0].content.parts[0].text;
-        } else {
-          summaryTextElem.innerText = "Could not generate AI summary.";
-        }
-      } catch (err) {
-        console.error("AI Summary Error:", err);
-        summaryTextElem.innerText = "AI Summary unavailable.";
-      }
-    }
-
     function openEmailModal(emailId) {
       const email = liveEmails.find(e => e.id === emailId);
       if (!email) return;
 
-      // Automatically mark as read
+      // Automatically mark message as read
       email.status = 'read';
 
       document.getElementById('email-detail-subject').innerText = email.topic;
@@ -606,7 +526,6 @@
       }
 
       document.getElementById('email-detail-modal').classList.remove('hidden');
-      generateAiSummary(email.snippet);
       renderFeed();
     }
 
@@ -617,139 +536,4 @@
     function switchView(viewName) {
       currentView = viewName;
       document.getElementById('main-view-title').innerText = 
-        viewName === 'spam' ? 'Spam & Junk Filter' : 
-        viewName === 'unread' ? 'Unread Messages' : 
-        viewName === 'read' ? 'All Mail (Read Archive)' : 
-        viewName === 'starred' ? 'Starred Queue' : 
-        viewName === 'actionable' ? 'Actionable / Meetings' : 'Clean Inbox';
-      renderFeed();
-    }
-
-    function resetDateFilter() {
-      isFilterByDateActive = false;
-      document.getElementById('active-date-label').innerText = 'All Dates';
-      renderCalendar();
-      renderFeed();
-    }
-
-    function changeMonth(delta) {
-      currentMonthIdx += delta;
-      if (currentMonthIdx > 11) {
-        currentMonthIdx = 0;
-        currentYear++;
-      } else if (currentMonthIdx < 0) {
-        currentMonthIdx = 11;
-        currentYear--;
-      }
-      document.getElementById('calendar-month-title').innerText = `${monthNames[currentMonthIdx]} ${currentYear}`;
-      renderCalendar();
-    }
-
-    function renderCalendar() {
-      const grid = document.getElementById('calendar-days-grid');
-      if (!grid) return;
-      grid.innerHTML = '';
-      const firstDayOffset = new Date(currentYear, currentMonthIdx, 1).getDay();
-      const totalDays = new Date(currentYear, currentMonthIdx + 1, 0).getDate();
-
-      for (let o = 0; o < firstDayOffset; o++) grid.appendChild(document.createElement('div'));
-
-      for (let day = 1; day <= totalDays; day++) {
-        const monthStr = (currentMonthIdx + 1) < 10 ? '0' + (currentMonthIdx + 1) : (currentMonthIdx + 1);
-        const dayStr = day < 10 ? '0' + day : day;
-        const dateStr = `${currentYear}-${monthStr}-${dayStr}`;
-
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = `p-1 rounded-lg transition font-semibold text-xs h-7 hover:bg-slate-100 ${selectedDate === dateStr && isFilterByDateActive ? 'bg-indigo-600 text-white font-bold' : 'text-slate-600'}`;
-        btn.innerText = day;
-        btn.onclick = () => {
-          selectedDate = dateStr;
-          isFilterByDateActive = true;
-          document.getElementById('active-date-label').innerText = selectedDate;
-          renderCalendar();
-          renderFeed();
-          renderScheduleList();
-        };
-        grid.appendChild(btn);
-      }
-    }
-
-    function changeSortOrder(val) {
-      activeSortKey = val;
-      renderFeed();
-    }
-
-    function openAddEventModal() {
-      document.getElementById('event-date-input').value = selectedDate;
-      document.getElementById('add-event-modal').classList.remove('hidden');
-    }
-
-    function closeAddEventModal() {
-      document.getElementById('add-event-modal').classList.add('hidden');
-    }
-
-    function handleCreateEvent(e) {
-      e.preventDefault();
-      const title = document.getElementById('event-title-input').value.trim();
-      const date = document.getElementById('event-date-input').value;
-      const time = document.getElementById('event-time-input').value;
-      const notes = document.getElementById('event-notes-input').value.trim();
-
-      if (!title || !date) return;
-
-      const newEvent = { id: Date.now(), title, date, time, notes };
-      calendarEvents.push(newEvent);
-      localStorage.setItem('user_calendar_events', JSON.stringify(calendarEvents));
-
-      document.getElementById('event-title-input').value = '';
-      document.getElementById('event-notes-input').value = '';
-      closeAddEventModal();
-      
-      renderScheduleList();
-    }
-
-    function renderScheduleList() {
-      const container = document.getElementById('integrated-schedule-list');
-      const countBadge = document.getElementById('event-count-badge');
-      const dateHeading = document.getElementById('schedule-date-heading');
-
-      dateHeading.innerText = selectedDate;
-      
-      const dayEvents = calendarEvents.filter(ev => ev.date === selectedDate);
-      countBadge.innerText = `${dayEvents.length} Events`;
-      container.innerHTML = '';
-
-      if (dayEvents.length === 0) {
-        container.innerHTML = `<div class="text-[11px] text-indigo-300 italic p-2">No scheduled events for this date.</div>`;
-        return;
-      }
-
-      dayEvents.forEach(ev => {
-        const item = document.createElement('div');
-        item.className = "bg-indigo-900/60 p-2 rounded-lg border border-indigo-700/50 flex justify-between items-center text-xs";
-        item.innerHTML = `
-          <div>
-            <div class="font-bold text-white">${ev.title}</div>
-            <div class="text-[10px] text-amber-300 font-mono">${ev.time}</div>
-          </div>
-          <button type="button" onclick="deleteEvent(${ev.id})" class="text-indigo-400 hover:text-red-400 p-1 font-bold">✕</button>
-        `;
-        container.appendChild(item);
-      });
-    }
-
-    function deleteEvent(id) {
-      calendarEvents = calendarEvents.filter(ev => ev.id !== id);
-      localStorage.setItem('user_calendar_events', JSON.stringify(calendarEvents));
-      renderScheduleList();
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById('calendar-month-title').innerText = `${monthNames[currentMonthIdx]} ${currentYear}`;
-      renderCalendar();
-      renderScheduleList();
-    });
-  </script>
-</body>
-</html>
+        view
