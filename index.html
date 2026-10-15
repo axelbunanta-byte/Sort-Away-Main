@@ -16,14 +16,14 @@
     <header class="bg-indigo-700 text-white px-6 py-3 flex items-center justify-between border-b border-indigo-800 shrink-0">
       <div>
         <h1 class="text-lg font-bold tracking-wide">Sort Away</h1>
-        <p class="text-xs text-indigo-200" id="current-view-subtitle">Active View: Full Inbox</p>
+        <p class="text-xs text-indigo-200" id="current-view-subtitle">Active View: Unread Inbox</p>
       </div>
       
-      <!-- Date Filter Indicator -->
+      <!-- Date Filter Indicator & Clear Filter Button -->
       <div class="flex items-center gap-2 bg-indigo-800/80 px-3 py-1.5 rounded-lg border border-indigo-500 text-xs">
         <span>Date Filter: <strong id="active-date-label" class="text-amber-300 font-mono">All Dates</strong></span>
-        <button type="button" onclick="resetDateFilter()" class="ml-2 text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded transition">
-          Show All
+        <button type="button" onclick="resetDateFilter()" class="ml-2 text-[10px] bg-amber-400 hover:bg-amber-300 text-indigo-950 font-bold px-2 py-0.5 rounded transition">
+          ← Reset Calendar Date
         </button>
       </div>
 
@@ -44,7 +44,7 @@
     <!-- Grid Layout -->
     <div class="grid grid-cols-12 flex-1 overflow-hidden">
 
-      <!-- LEFT SIDEBAR: Calendar, Schedule & Priority Spam Filter -->
+      <!-- LEFT SIDEBAR: Calendar & Schedule -->
       <aside class="col-span-4 border-r border-slate-200 bg-slate-50 p-3.5 flex flex-col justify-between overflow-y-auto space-y-3">
         
         <!-- CALENDAR WIDGET -->
@@ -89,7 +89,7 @@
           <div id="integrated-schedule-list" class="space-y-2 flex-1 overflow-y-auto pr-1"></div>
         </div>
 
-        <!-- PRIORITY SPAM & JUNK FILTER BUTTON -->
+        <!-- SPAM FILTER NAV -->
         <div onclick="switchView('spam')" id="nav-spam" class="cursor-pointer bg-red-50 hover:bg-red-100 p-3 rounded-lg border border-red-300 transition flex items-center justify-between shrink-0 shadow-sm">
           <div>
             <div class="text-xs font-extrabold text-red-900 flex items-center gap-1">
@@ -108,9 +108,9 @@
         <div class="flex items-center justify-between mb-3 border-b pb-2 shrink-0">
           <div>
             <h2 id="main-view-title" class="text-base font-bold text-slate-800">
-              Full Inbox
+              Unread Inbox
             </h2>
-            <span class="text-[11px] text-slate-400" id="main-view-hint">Showing clean incoming emails</span>
+            <span class="text-[11px] text-slate-400" id="main-view-hint">Showing unread messages</span>
           </div>
 
           <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg">
@@ -134,23 +134,23 @@
 
       </main>
 
-      <!-- RIGHT SIDEBAR: FOLDER FILTERS -->
+      <!-- RIGHT SIDEBAR: SMART FOLDERS -->
       <aside class="col-span-3 bg-slate-50 p-4 space-y-3 overflow-y-auto shrink-0">
         
-        <div onclick="switchView('full-inbox')" id="nav-full-inbox" class="cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
-          <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
-            <span>📥 Clean Inbox</span>
-            <span id="full-count-badge" class="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
-          </div>
-          <p class="text-[10px] text-slate-500">Excludes detected junk & spam</p>
-        </div>
-
         <div onclick="switchView('unread')" id="nav-unread" class="cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
           <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
             <span>📩 Unread Messages</span>
             <span id="unread-count-badge" class="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
           </div>
-          <p class="text-[10px] text-slate-500">Filtered unread inbox</p>
+          <p class="text-[10px] text-slate-500">Unread incoming inbox</p>
+        </div>
+
+        <div onclick="switchView('read')" id="nav-read" class="cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
+          <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
+            <span>📦 All Mail (Read Archive)</span>
+            <span id="read-count-badge" class="bg-slate-200 text-slate-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+          </div>
+          <p class="text-[10px] text-slate-500">Automatically stores opened messages</p>
         </div>
 
         <div onclick="switchView('actionable')" id="nav-actionable" class="cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
@@ -194,8 +194,8 @@
 
       <!-- AI Summary Box -->
       <div id="ai-summary-box" class="bg-indigo-50 border border-indigo-200 p-3 rounded-lg text-xs text-indigo-900 font-sans">
-        <div class="font-bold text-indigo-700 mb-1 flex items-center gap-1">✨ AI Summary</div>
-        <div id="ai-summary-text" class="italic text-indigo-800">Set API Key to generate AI summary...</div>
+        <div class="font-bold text-indigo-700 mb-1 flex items-center gap-1">✨ AI Summary Trial</div>
+        <div id="ai-summary-text" class="italic text-indigo-800">Set API Key to try AI summary...</div>
       </div>
 
       <div class="bg-slate-50 p-4 rounded-lg border border-slate-100 text-xs text-slate-700 leading-relaxed max-h-72 overflow-y-auto" id="email-detail-body">
@@ -306,7 +306,7 @@
     let currentMonthIdx = new Date().getMonth();
     let selectedDate = new Date().toISOString().split('T')[0];
     let isFilterByDateActive = false;
-    let currentView = 'full-inbox';
+    let currentView = 'unread';
     let activeSortKey = 'newest';
     let calendarEvents = JSON.parse(localStorage.getItem('user_calendar_events')) || [];
 
@@ -402,7 +402,7 @@
 
     async function fetchGmailInbox() {
       const container = document.getElementById('main-feed-container');
-      container.innerHTML = `<div class="p-12 text-center text-slate-500 text-xs">Connecting to Gmail API & classifying spam...</div>`;
+      container.innerHTML = `<div class="p-12 text-center text-slate-500 text-xs">Connecting to Gmail API & classifying inbox...</div>`;
 
       try {
         const keyQuery = googleApiKey ? `&key=${encodeURIComponent(googleApiKey)}` : '';
@@ -442,7 +442,7 @@
           const isUnread = msg.labelIds ? msg.labelIds.includes('UNREAD') : false;
           const isStarred = msg.labelIds ? msg.labelIds.includes('STARRED') : false;
 
-          // ADVANCED SPAM & JUNK HEURISTIC DETECTOR
+          // SPAM DETECTOR
           const isExplicitSpam = msg.labelIds ? (msg.labelIds.includes('SPAM') || msg.labelIds.includes('TRASH')) : false;
           const spamKeywords = [
             'unsubscribe', 'discount', '% off', 'sale', 'newsletter', 'no-reply', 'noreply', 
@@ -494,18 +494,17 @@
 
       let filteredList = [];
 
-      // VIEW FILTERING (Spam isolated by default from clean views)
+      // VIEW FILTERING
       if (currentView === 'spam') {
         filteredList = liveEmails.filter(e => e.isSpam);
       } else if (currentView === 'unread') {
         filteredList = liveEmails.filter(e => e.status === 'unread' && !e.isSpam);
+      } else if (currentView === 'read') {
+        filteredList = liveEmails.filter(e => e.status === 'read' && !e.isSpam);
       } else if (currentView === 'starred') {
         filteredList = liveEmails.filter(e => e.starred && !e.isSpam);
       } else if (currentView === 'actionable') {
         filteredList = liveEmails.filter(e => e.isActionable && !e.isSpam);
-      } else {
-        // Clean Inbox (full inbox minus spam)
-        filteredList = liveEmails.filter(e => !e.isSpam);
       }
 
       if (isFilterByDateActive) {
@@ -522,8 +521,8 @@
 
       // Update Counts
       document.getElementById('spam-count').innerText = liveEmails.filter(e => e.isSpam).length;
-      document.getElementById('full-count-badge').innerText = liveEmails.filter(e => !e.isSpam).length;
       document.getElementById('unread-count-badge').innerText = liveEmails.filter(e => e.status === 'unread' && !e.isSpam).length;
+      document.getElementById('read-count-badge').innerText = liveEmails.filter(e => e.status === 'read' && !e.isSpam).length;
       document.getElementById('starred-count-badge').innerText = liveEmails.filter(e => e.starred && !e.isSpam).length;
       document.getElementById('actionable-count-badge').innerText = liveEmails.filter(e => e.isActionable && !e.isSpam).length;
 
@@ -534,7 +533,7 @@
 
       filteredList.forEach((email) => {
         const card = document.createElement('div');
-        card.className = "p-4 bg-white border border-slate-200 rounded-lg hover:border-indigo-400 cursor-pointer transition flex flex-col space-y-1 shadow-sm";
+        card.className = `p-4 bg-white border border-slate-200 rounded-lg hover:border-indigo-400 cursor-pointer transition flex flex-col space-y-1 shadow-sm ${email.status === 'read' ? 'opacity-75 bg-slate-50' : ''}`;
         card.onclick = () => openEmailModal(email.id);
         card.innerHTML = `
           <div class="flex items-center justify-between text-xs font-bold text-slate-800">
@@ -544,6 +543,7 @@
           <div class="text-xs text-indigo-700 font-semibold truncate flex items-center gap-1.5">
             ${email.isSpam ? '<span class="bg-red-100 text-red-800 text-[9px] px-1.5 py-0.5 rounded font-bold">Spam / Junk</span>' : ''}
             ${email.isActionable ? '<span class="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded font-bold">Action</span>' : ''}
+            ${email.status === 'read' ? '<span class="bg-slate-200 text-slate-700 text-[9px] px-1.5 py-0.5 rounded font-bold">Read</span>' : ''}
             ${email.topic}
           </div>
           <div class="text-[11px] text-slate-500 line-clamp-1">${email.snippet}</div>
@@ -588,13 +588,16 @@
       const email = liveEmails.find(e => e.id === emailId);
       if (!email) return;
 
+      // Automatically mark as read
+      email.status = 'read';
+
       document.getElementById('email-detail-subject').innerText = email.topic;
       document.getElementById('email-detail-sender').innerText = email.sender;
       document.getElementById('email-detail-date').innerText = email.displayDate;
       document.getElementById('email-detail-body').innerText = email.snippet;
 
       const tagContainer = document.getElementById('email-detail-tags');
-      tagContainer.innerHTML = '';
+      tagContainer.innerHTML = '<span class="bg-slate-200 text-slate-700 text-[10px] px-2 py-0.5 rounded font-bold">Read</span>';
       if (email.isSpam) {
         tagContainer.innerHTML += `<span class="bg-red-100 text-red-800 text-[10px] px-2 py-0.5 rounded font-bold">Spam / Junk</span>`;
       }
@@ -604,6 +607,7 @@
 
       document.getElementById('email-detail-modal').classList.remove('hidden');
       generateAiSummary(email.snippet);
+      renderFeed();
     }
 
     function closeEmailModal() {
@@ -615,6 +619,7 @@
       document.getElementById('main-view-title').innerText = 
         viewName === 'spam' ? 'Spam & Junk Filter' : 
         viewName === 'unread' ? 'Unread Messages' : 
+        viewName === 'read' ? 'All Mail (Read Archive)' : 
         viewName === 'starred' ? 'Starred Queue' : 
         viewName === 'actionable' ? 'Actionable / Meetings' : 'Clean Inbox';
       renderFeed();
