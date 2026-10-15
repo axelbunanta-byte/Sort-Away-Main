@@ -150,20 +150,20 @@
           <p class="text-[10px] text-slate-500">Automatically stores opened messages</p>
         </div>
 
+        <div onclick="switchView('starred')" id="nav-starred" class="cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
+          <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
+            <span>⭐ Starred Senders</span>
+            <span id="starred-count-badge" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
+          </div>
+          <p class="text-[10px] text-slate-500">Flagged priority mail</p>
+        </div>
+
         <div onclick="switchView('actionable')" id="nav-actionable" class="cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
           <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
             <span>⚡ Actionable / Meetings</span>
             <span id="actionable-count-badge" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
           </div>
           <p class="text-[10px] text-slate-500">Invites, tasks, & schedules</p>
-        </div>
-
-        <div onclick="switchView('starred')" id="nav-starred" class="cursor-pointer bg-white hover:border-indigo-400 p-3 rounded-lg border border-slate-200 shadow-sm transition">
-          <div class="flex items-center justify-between font-bold text-slate-800 text-xs mb-1">
-            <span>⭐ Starred Queue</span>
-            <span id="starred-count-badge" class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">0</span>
-          </div>
-          <p class="text-[10px] text-slate-500">Flagged priority mail</p>
         </div>
 
       </aside>
@@ -193,7 +193,10 @@
         Message body content...
       </div>
 
-      <div class="flex justify-end border-t pt-3">
+      <div class="flex justify-between items-center border-t pt-3">
+        <button type="button" id="modal-star-btn" class="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-3.5 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
+          <span>⭐</span> <span id="modal-star-btn-label">Star Message</span>
+        </button>
         <button type="button" onclick="closeEmailModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded text-xs font-semibold transition">
           Close
         </button>
@@ -435,6 +438,20 @@
       }
     }
 
+    function toggleStar(emailId, event) {
+      if (event) event.stopPropagation();
+      const email = liveEmails.find(e => e.id === emailId);
+      if (email) {
+        email.starred = !email.starred;
+        renderFeed();
+        // Update modal star button state if modal is active
+        const modalBtnLabel = document.getElementById('modal-star-btn-label');
+        if (modalBtnLabel) {
+          modalBtnLabel.innerText = email.starred ? 'Unstar Message' : 'Star Message';
+        }
+      }
+    }
+
     function renderFeed() {
       const container = document.getElementById('main-feed-container');
       container.innerHTML = '';
@@ -489,8 +506,13 @@
         card.onclick = () => openEmailModal(email.id);
         card.innerHTML = `
           <div class="flex items-center justify-between text-xs font-bold text-slate-800">
-            <span class="truncate max-w-[220px]">${email.sender}</span>
-            <span class="text-[10px] text-slate-400 font-mono">${email.displayDate}</span>
+            <span class="truncate max-w-[200px]">${email.sender}</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] text-slate-400 font-mono">${email.displayDate}</span>
+              <button type="button" onclick="toggleStar('${email.id}', event)" class="p-1 text-sm hover:scale-125 transition" title="${email.starred ? 'Unstar email' : 'Star email'}">
+                ${email.starred ? '⭐' : '☆'}
+              </button>
+            </div>
           </div>
           <div class="text-xs text-indigo-700 font-semibold truncate flex items-center gap-1.5">
             ${email.isSpam ? '<span class="bg-red-100 text-red-800 text-[9px] px-1.5 py-0.5 rounded font-bold">Spam / Junk</span>' : ''}
@@ -525,6 +547,12 @@
         tagContainer.innerHTML += `<span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded font-bold">Actionable / Meeting</span>`;
       }
 
+      // Configure Modal Star Button
+      const modalStarBtn = document.getElementById('modal-star-btn');
+      const modalBtnLabel = document.getElementById('modal-star-btn-label');
+      modalBtnLabel.innerText = email.starred ? 'Unstar Message' : 'Star Message';
+      modalStarBtn.onclick = () => toggleStar(email.id);
+
       document.getElementById('email-detail-modal').classList.remove('hidden');
       renderFeed();
     }
@@ -536,4 +564,139 @@
     function switchView(viewName) {
       currentView = viewName;
       document.getElementById('main-view-title').innerText = 
-        view
+        viewName === 'spam' ? 'Spam & Junk Filter' : 
+        viewName === 'unread' ? 'Unread Messages' : 
+        viewName === 'read' ? 'All Mail (Read Archive)' : 
+        viewName === 'starred' ? 'Starred Senders' : 
+        viewName === 'actionable' ? 'Actionable / Meetings' : 'Clean Inbox';
+      renderFeed();
+    }
+
+    function resetDateFilter() {
+      isFilterByDateActive = false;
+      document.getElementById('active-date-label').innerText = 'All Dates';
+      renderCalendar();
+      renderFeed();
+    }
+
+    function changeMonth(delta) {
+      currentMonthIdx += delta;
+      if (currentMonthIdx > 11) {
+        currentMonthIdx = 0;
+        currentYear++;
+      } else if (currentMonthIdx < 0) {
+        currentMonthIdx = 11;
+        currentYear--;
+      }
+      document.getElementById('calendar-month-title').innerText = `${monthNames[currentMonthIdx]} ${currentYear}`;
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const grid = document.getElementById('calendar-days-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      const firstDayOffset = new Date(currentYear, currentMonthIdx, 1).getDay();
+      const totalDays = new Date(currentYear, currentMonthIdx + 1, 0).getDate();
+
+      for (let o = 0; o < firstDayOffset; o++) grid.appendChild(document.createElement('div'));
+
+      for (let day = 1; day <= totalDays; day++) {
+        const monthStr = (currentMonthIdx + 1) < 10 ? '0' + (currentMonthIdx + 1) : (currentMonthIdx + 1);
+        const dayStr = day < 10 ? '0' + day : day;
+        const dateStr = `${currentYear}-${monthStr}-${dayStr}`;
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `p-1 rounded-lg transition font-semibold text-xs h-7 hover:bg-slate-100 ${selectedDate === dateStr && isFilterByDateActive ? 'bg-indigo-600 text-white font-bold' : 'text-slate-600'}`;
+        btn.innerText = day;
+        btn.onclick = () => {
+          selectedDate = dateStr;
+          isFilterByDateActive = true;
+          document.getElementById('active-date-label').innerText = selectedDate;
+          renderCalendar();
+          renderFeed();
+          renderScheduleList();
+        };
+        grid.appendChild(btn);
+      }
+    }
+
+    function changeSortOrder(val) {
+      activeSortKey = val;
+      renderFeed();
+    }
+
+    function openAddEventModal() {
+      document.getElementById('event-date-input').value = selectedDate;
+      document.getElementById('add-event-modal').classList.remove('hidden');
+    }
+
+    function closeAddEventModal() {
+      document.getElementById('add-event-modal').classList.add('hidden');
+    }
+
+    function handleCreateEvent(e) {
+      e.preventDefault();
+      const title = document.getElementById('event-title-input').value.trim();
+      const date = document.getElementById('event-date-input').value;
+      const time = document.getElementById('event-time-input').value;
+      const notes = document.getElementById('event-notes-input').value.trim();
+
+      if (!title || !date) return;
+
+      const newEvent = { id: Date.now(), title, date, time, notes };
+      calendarEvents.push(newEvent);
+      localStorage.setItem('user_calendar_events', JSON.stringify(calendarEvents));
+
+      document.getElementById('event-title-input').value = '';
+      document.getElementById('event-notes-input').value = '';
+      closeAddEventModal();
+      
+      renderScheduleList();
+    }
+
+    function renderScheduleList() {
+      const container = document.getElementById('integrated-schedule-list');
+      const countBadge = document.getElementById('event-count-badge');
+      const dateHeading = document.getElementById('schedule-date-heading');
+
+      dateHeading.innerText = selectedDate;
+      
+      const dayEvents = calendarEvents.filter(ev => ev.date === selectedDate);
+      countBadge.innerText = `${dayEvents.length} Events`;
+      container.innerHTML = '';
+
+      if (dayEvents.length === 0) {
+        container.innerHTML = `<div class="text-[11px] text-indigo-300 italic p-2">No scheduled events for this date.</div>`;
+        return;
+      }
+
+      dayEvents.forEach(ev => {
+        const item = document.createElement('div');
+        item.className = "bg-indigo-900/60 p-2 rounded-lg border border-indigo-700/50 flex justify-between items-center text-xs";
+        item.innerHTML = `
+          <div>
+            <div class="font-bold text-white">${ev.title}</div>
+            <div class="text-[10px] text-amber-300 font-mono">${ev.time}</div>
+          </div>
+          <button type="button" onclick="deleteEvent(${ev.id})" class="text-indigo-400 hover:text-red-400 p-1 font-bold">✕</button>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function deleteEvent(id) {
+      calendarEvents = calendarEvents.filter(ev => ev.id !== id);
+      localStorage.setItem('user_calendar_events', JSON.stringify(calendarEvents));
+      renderScheduleList();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById('calendar-month-title').innerText = `${monthNames[currentMonthIdx]} ${currentYear}`;
+      renderCalendar();
+      renderScheduleList();
+    });
+  </script>
+</body>
+</html>
